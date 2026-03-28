@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Create your TeamUp Sports account - Join matches and connect with players">
+    <title>Sign Up - TeamUp Sports</title>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <link rel="stylesheet" href="styles/main.css">
+    <link rel="icon" type="image/svg+xml"
+        href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚽</text></svg>">
+</head>
+
+<body>
+    <!-- Navigation -->
+    <nav class="navbar" id="navbar">
+        <div class="container navbar-content">
+            <a href="index.html" class="logo">
+                <div class="logo-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10" />
+                        <circle cx="12" cy="12" r="4" />
+                    </svg>
+                </div>
+                <span>Team<span class="text-gradient">Up</span></span>
+            </a>
+        </div>
+    </nav>
+
+    <!-- Register Page -->
+    <main class="auth-page" style="padding-top: 100px;">
+        <div class="auth-container" style="max-width: 520px;">
+            <div class="auth-card">
+                <div class="auth-header">
+                    <h1 class="auth-title">Create Account</h1>
+                    <p class="auth-subtitle">Join thousands of sports enthusiasts</p>
+                </div>
+
+                <form class="auth-form" id="registerForm" autocomplete="off">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-4);">
+                        <div class="form-group">
+                            <label class="form-label required">First Name</label>
+                            <input type="text" class="form-input" id="firstName" placeholder="John" data-validate="name"
+                                required>
+                            <span class="form-error" style="display: none;">Enter valid name</span>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label required">Last Name</label>
+                            <input type="text" class="form-input" id="lastName" placeholder="Doe" data-validate="name"
+                                required>
+                            <span class="form-error" style="display: none;">Enter valid name</span>
+                        </div>
+                    </div>
+
+                    <div class="form-group" id="emailGroup" style="position: relative;">
+                        <label class="form-label required">Email Address</label>
+                        <div style="position: relative; display: flex; align-items: center; width: 100%;">
+                            <input type="email" class="form-input" id="email" placeholder="john@example.com"
+                                autocomplete="off" required style="padding-right: 90px; width: 100%;">
+                            <button type="button" id="btnSendOtp" class="btn btn-primary" 
+                                style="position: absolute; right: 6px; top: 6px; bottom: 6px; padding: 0 var(--space-3); font-size: 0.8rem; height: calc(100% - 12px); z-index: 10; border-radius: var(--radius-md); display: inline-flex; align-items: center; justify-content: center;">
+                                Verify
+                            </button>
+                        </div>
+                        <span class="form-error" style="display: none;">Please enter a valid email</span>
+                        <div id="emailVerifiedBadge" style="display: none; color: var(--accent-green); font-size: 0.85rem; margin-top: var(--space-1); align-items: center; gap: 4px;">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg> Email Verified
+                        </div>
+                    </div>
+
+                    <!-- Sliding OTP Field -->
+                    <div class="form-group" id="otpGroup" style="max-height: 0; overflow: hidden; opacity: 0; transition: all 0.4s ease-in-out; margin-bottom: 0;">
+                        <label class="form-label required">Verification Code</label>
+                        <div style="display: flex; gap: 8px; justify-content: space-between; margin-bottom: var(--space-3);" id="otpDigitsContainer">
+                            <input type="text" inputmode="numeric" pattern="[0-9]*" class="form-input otp-digit" maxlength="1" autocomplete="off" style="width: 100%; aspect-ratio: 1/1.1; text-align: center; font-size: 1.25rem; font-weight: 700; padding: 0; border-radius: var(--radius-md);">
+                            <input type="text" inputmode="numeric" pattern="[0-9]*" class="form-input otp-digit" maxlength="1" autocomplete="off" style="width: 100%; aspect-ratio: 1/1.1; text-align: center; font-size: 1.25rem; font-weight: 700; padding: 0; border-radius: var(--radius-md);">
+                            <input type="text" inputmode="numeric" pattern="[0-9]*" class="form-input otp-digit" maxlength="1" autocomplete="off" style="width: 100%; aspect-ratio: 1/1.1; text-align: center; font-size: 1.25rem; font-weight: 700; padding: 0; border-radius: var(--radius-md);">
+                            <input type="text" inputmode="numeric" pattern="[0-9]*" class="form-input otp-digit" maxlength="1" autocomplete="off" style="width: 100%; aspect-ratio: 1/1.1; text-align: center; font-size: 1.25rem; font-weight: 700; padding: 0; border-radius: var(--radius-md);">
+                            <input type="text" inputmode="numeric" pattern="[0-9]*" class="form-input otp-digit" maxlength="1" autocomplete="off" style="width: 100%; aspect-ratio: 1/1.1; text-align: center; font-size: 1.25rem; font-weight: 700; padding: 0; border-radius: var(--radius-md);">
+                            <input type="text" inputmode="numeric" pattern="[0-9]*" class="form-input otp-digit" maxlength="1" autocomplete="off" style="width: 100%; aspect-ratio: 1/1.1; text-align: center; font-size: 1.25rem; font-weight: 700; padding: 0; border-radius: var(--radius-md);">
+                        </div>
+                        <button type="button" id="btnVerifyOtp" class="btn btn-secondary" style="width: 100%;">
+                            Confirm Code
+                        </button>
+                        <span class="form-error" id="otpError" style="display: none;">Invalid code</span>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label required">Phone Number</label>
+                        <div style="display: flex; gap: var(--space-2);">
+                            <select class="form-input form-select" style="width: 100px; flex-shrink: 0;">
+                                <option value="+91">+91</option>
+                                <option value="+1">+1</option>
+                                <option value="+44">+44</option>
+                            </select>
+                            <input type="tel" class="form-input" id="phone" placeholder="9876543210"
+                                data-validate="phone" required>
+                        </div>
+                        <span class="form-error" style="display: none;">Please enter a valid 10-digit phone
+                            number</span>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label required">Country</label>
+                        <select class="form-input form-select" id="country" required>
+                            <option value="">Loading countries...</option>
+                        </select>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-4);">
+                        <div class="form-group">
+                            <label class="form-label required">State</label>
+                            <select class="form-input form-select" id="state" required disabled>
+                                <option value="">Select country first</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label required">City</label>
+                            <select class="form-input form-select" id="city" required disabled>
+                                <option value="">Select state first</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label required">Password</label>
+                        <div style="position: relative;">
+                            <input type="password" class="form-input" id="password" placeholder="Minimum 6 characters"
+                                data-validate="password" required>
+                            <button type="button" class="btn btn-ghost btn-icon" id="togglePassword"
+                                style="position: absolute; right: 4px; top: 50%; transform: translateY(-50%);">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2">
+                                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                                    <circle cx="12" cy="12" r="3" />
+                                </svg>
+                            </button>
+                        </div>
+                        <span class="form-error" style="display: none;">Password must be at least 6 characters</span>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Preferred Sports (Select multiple)</label>
+                        <div class="sport-tags" id="sportSelection">
+                            <label class="sport-tag" data-sport="cricket">
+                                <input type="checkbox" name="sports" value="cricket" style="display: none;">
+                                <span>🏏</span> Cricket
+                            </label>
+                            <label class="sport-tag" data-sport="football">
+                                <input type="checkbox" name="sports" value="football" style="display: none;">
+                                <span>⚽</span> Football
+                            </label>
+                            <label class="sport-tag" data-sport="basketball">
+                                <input type="checkbox" name="sports" value="basketball" style="display: none;">
+                                <span>🏀</span> Basketball
+                            </label>
+                            <label class="sport-tag" data-sport="badminton">
+                                <input type="checkbox" name="sports" value="badminton" style="display: none;">
+                                <span>🏸</span> Badminton
+                            </label>
+                            <label class="sport-tag" data-sport="tennis">
+                                <input type="checkbox" name="sports" value="tennis" style="display: none;">
+                                <span>🎾</span> Tennis
+                            </label>
+                            <label class="sport-tag" data-sport="volleyball">
+                                <input type="checkbox" name="sports" value="volleyball" style="display: none;">
+                                <span>🏐</span> Volleyball
+                            </label>
+                            <label class="sport-tag" data-sport="hockey">
+                                <input type="checkbox" name="sports" value="hockey" style="display: none;">
+                                <span>🏑</span> Hockey
+                            </label>
+                            <label class="sport-tag" data-sport="kabaddi">
+                                <input type="checkbox" name="sports" value="kabaddi" style="display: none;">
+                                <span>🤼</span> Kabaddi
+                            </label>
+                        </div>
+                    </div>
+
+                    <label class="checkbox-group">
+                        <input type="checkbox" class="checkbox-input" id="terms" required>
+                        <span class="checkbox-custom">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="3">
+                                <polyline points="20 6 9 17 4 12" />
+                            </svg>
+                        </span>
+                        <span style="color: var(--text-secondary); font-size: 0.9rem;">
+                            I agree to the <a href="#" style="color: var(--primary-500);">Terms of Service</a> and <a
+                                href="#" style="color: var(--primary-500);">Privacy Policy</a>
+                        </span>
+                    </label>
+
+                    <button type="submit" class="btn btn-primary btn-lg" id="btnRegister" style="width: 100%;">
+                        Create Account
+                    </button>
+                </form>
+
+                <div class="auth-divider">or continue with</div>
+
+                <div style="display: flex; gap: var(--space-3);">
+                    <button type="button" class="btn btn-secondary btn-google" style="flex: 1;" id="googleSignInBtn"
+                        onclick="handleGoogleSignIn()">
+                        <svg width="20" height="20" viewBox="0 0 24 24">
+                            <path fill="#4285F4"
+                                d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+                            <path fill="#34A853"
+                                d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+                            <path fill="#FBBC05"
+                                d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
+                            <path fill="#EA4335"
+                                d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
+                        </svg>
+                        Sign up with Google
+                    </button>
+                </div>
+
+                <p class="auth-footer">
+                    Already have an account? <a href="login.html">Sign in</a>
+                </p>
+            </div>
+        </div>
+    </main>
+
+    <!-- Toast Container -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- Scripts -->
+    <script src="js/api.js"></script>
+    <script src="js/app.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/google-auth.js"></script>
+    <script>
+        // Sport tag selection
+        document.querySelectorAll('.sport-tag').forEach(tag => {
+            tag.addEventListener('click', () => {
+                const checkbox = tag.querySelector('input[type="checkbox"]');
+                checkbox.checked = !checkbox.checked;
+                tag.classList.toggle('selected', checkbox.checked);
+            });
+        });
+    </script>
+</body>
+
+</html>
