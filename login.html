@@ -37,9 +37,7 @@
                     <p class="auth-subtitle">Sign in to continue to TeamUp Sports</p>
                 </div>
 
-                <!-- Login View -->
-                <div id="loginView">
-                    <form class="auth-form" id="loginForm" autocomplete="off">
+                <form class="auth-form" id="loginForm" autocomplete="off">
                     <div class="form-group" id="loginIdentifierGroup">
                         <label class="form-label required">Email or Phone</label>
                         <input type="text" class="form-input" id="loginIdentifier"
@@ -76,7 +74,7 @@
                             </span>
                             <span style="color: var(--text-secondary); font-size: 0.9rem;">Remember me</span>
                         </label>
-                        <a href="#" id="linkForgotPassword" style="color: var(--primary-500); font-size: 0.9rem;">Forgot password?</a>
+                        <a href="forgot-password.html" style="color: var(--primary-500); font-size: 0.9rem;">Forgot password?</a>
                     </div>
 
                     <button type="submit" class="btn btn-primary btn-lg" style="width: 100%;">
@@ -103,73 +101,9 @@
                     </button>
                 </div>
 
-                    <p class="auth-footer">
-                        Don't have an account? <a href="register.html">Sign up</a>
-                    </p>
-                </div>
-
-                <!-- Forgot Password View (Hidden) -->
-                <div id="forgotPasswordView" style="display: none; animation: slideInRight 0.3s forwards;">
-                    
-                    <!-- Step 1: Email -->
-                    <form class="auth-form" id="fpStep1">
-                        <div style="margin-bottom: var(--space-4);">
-                            <h2 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 8px;">Reset Password</h2>
-                            <p style="color: var(--text-secondary); font-size: 0.9rem;">Enter your email to receive a 6-digit verification code.</p>
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label required">Email Address</label>
-                            <input type="email" class="form-input" id="fpEmail" placeholder="e.g. you@example.com" required>
-                        </div>
-                        <button type="button" class="btn btn-primary btn-lg" id="btnSendFpOtp" style="width: 100%;">
-                            Send Code
-                        </button>
-                        <button type="button" class="btn btn-ghost" id="btnBackToLogin1" style="width: 100%; margin-top: 12px;">
-                            Back to Login
-                        </button>
-                    </form>
-
-                    <!-- Step 2: OTP -->
-                    <form class="auth-form" id="fpStep2" style="display: none;">
-                        <div style="margin-bottom: var(--space-4);">
-                            <h2 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 8px;">Verify Code</h2>
-                            <p style="color: var(--text-secondary); font-size: 0.9rem;">We sent a code to <br><span id="fpDisplayEmail" style="color: white; font-weight: 500;"></span></p>
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label required">6-Digit Code</label>
-                            <div style="display: flex; gap: 8px; justify-content: space-between; margin-bottom: var(--space-3);" id="fpOtpContainer">
-                                <input type="text" inputmode="numeric" pattern="[0-9]*" class="form-input fp-otp-digit" maxlength="1" autocomplete="off" style="width: 100%; aspect-ratio: 1/1.1; text-align: center; font-size: 1.25rem; font-weight: 700; padding: 0; border-radius: var(--radius-md);">
-                                <input type="text" inputmode="numeric" pattern="[0-9]*" class="form-input fp-otp-digit" maxlength="1" autocomplete="off" style="width: 100%; aspect-ratio: 1/1.1; text-align: center; font-size: 1.25rem; font-weight: 700; padding: 0; border-radius: var(--radius-md);">
-                                <input type="text" inputmode="numeric" pattern="[0-9]*" class="form-input fp-otp-digit" maxlength="1" autocomplete="off" style="width: 100%; aspect-ratio: 1/1.1; text-align: center; font-size: 1.25rem; font-weight: 700; padding: 0; border-radius: var(--radius-md);">
-                                <input type="text" inputmode="numeric" pattern="[0-9]*" class="form-input fp-otp-digit" maxlength="1" autocomplete="off" style="width: 100%; aspect-ratio: 1/1.1; text-align: center; font-size: 1.25rem; font-weight: 700; padding: 0; border-radius: var(--radius-md);">
-                                <input type="text" inputmode="numeric" pattern="[0-9]*" class="form-input fp-otp-digit" maxlength="1" autocomplete="off" style="width: 100%; aspect-ratio: 1/1.1; text-align: center; font-size: 1.25rem; font-weight: 700; padding: 0; border-radius: var(--radius-md);">
-                                <input type="text" inputmode="numeric" pattern="[0-9]*" class="form-input fp-otp-digit" maxlength="1" autocomplete="off" style="width: 100%; aspect-ratio: 1/1.1; text-align: center; font-size: 1.25rem; font-weight: 700; padding: 0; border-radius: var(--radius-md);">
-                            </div>
-                        </div>
-                        <button type="button" class="btn btn-primary btn-lg" id="btnVerifyFpOtp" style="width: 100%;">
-                            Verify Code
-                        </button>
-                        <button type="button" class="btn btn-ghost" id="btnBackToLogin2" style="width: 100%; margin-top: 12px;">
-                            Cancel
-                        </button>
-                    </form>
-
-                    <!-- Step 3: New Password -->
-                    <form class="auth-form" id="fpStep3" style="display: none;">
-                        <div style="margin-bottom: var(--space-4);">
-                            <h2 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 8px;">New Password</h2>
-                            <p style="color: var(--text-secondary); font-size: 0.9rem;">Choose a strong new password.</p>
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label required">New Password</label>
-                            <input type="password" class="form-input" id="fpNewPassword" placeholder="At least 6 characters" required>
-                            <span class="form-error" style="display: none;">Password must be at least 6 characters</span>
-                        </div>
-                        <button type="button" class="btn btn-primary btn-lg" id="btnResetPassword" style="width: 100%;">
-                            Reset & Login
-                        </button>
-                    </form>
-                </div>
+                <p class="auth-footer">
+                    Don't have an account? <a href="register.html">Sign up</a>
+                </p>
             </div>
         </div>
     </main>
@@ -180,6 +114,7 @@
     <div class="toast-container" id="toastContainer"></div>
 
     <!-- Scripts -->
+    <script src="js/env-config.js"></script>
     <script src="js/api.js"></script>
     <script src="js/app.js"></script>
     <script src="js/auth.js"></script>

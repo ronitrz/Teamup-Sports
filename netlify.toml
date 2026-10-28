@@ -1,0 +1,3 @@
+[build]
+  command = "echo 'Static frontend - no build needed'"
+  publish = "."

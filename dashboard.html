@@ -31,6 +31,7 @@
                 <a href="index.html" class="nav-link">Home</a>
                 <a href="dashboard.html" class="nav-link active">Matches</a>
                 <a href="create-match.html" class="nav-link">Create Match</a>
+                <a href="watch-live.html" class="nav-link" style="color: #ef4444;">🔴 Watch Live</a>
             </div>
 
             <div class="nav-actions">
@@ -69,6 +70,7 @@
             <a href="index.html" class="mobile-nav-link">Home</a>
             <a href="dashboard.html" class="mobile-nav-link active">Matches</a>
             <a href="create-match.html" class="mobile-nav-link">Create Match</a>
+            <a href="watch-live.html" class="mobile-nav-link" style="color: #ef4444;">🔴 Watch Live</a>
             <hr style="border-color: var(--border-default); margin: var(--space-4) 0;">
             <div id="mobileMenuAuth">
                 <a href="login.html" class="mobile-nav-link">Login</a>
@@ -82,8 +84,7 @@
         <div class="container">
             <!-- Page Header -->
             <div class="page-header">
-                <div
-                    style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: var(--space-4);">
+                <div class="page-header-content">
                     <div>
                         <h1 class="page-title">Match Dashboard</h1>
                         <p class="page-subtitle">Find and join matches near you</p>
@@ -195,6 +196,7 @@
     <!-- Scripts -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
         integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <script src="js/env-config.js"></script>
     <script src="js/api.js"></script>
     <script src="js/app.js"></script>
     <script src="js/geolocation.js"></script>

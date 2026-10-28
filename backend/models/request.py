@@ -20,35 +20,29 @@ class JoinRequest(db.Model):
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
     def approve(self):
-        """Mark this join request as approved and add the player to the match.
-        The caller is responsible for calling db.session.commit().
-        """
+        """Approve this join request and add player to match"""
         self.status = 'approved'
         self.updated_at = datetime.utcnow()
+        # Add player to match
         if self.match:
             self.match.add_player(self.user_id)
+        db.session.commit()
     
     def reject(self):
-        """Mark this join request as rejected.
-        The caller is responsible for calling db.session.commit().
-        """
+        """Reject this join request"""
         self.status = 'rejected'
         self.updated_at = datetime.utcnow()
+        db.session.commit()
     
     def to_dict(self):
-        """Convert to dictionary.
-        All datetimes carry a 'Z' suffix so JavaScript parses them as UTC.
-        """
-        def _utc_iso(dt):
-            return dt.strftime('%Y-%m-%dT%H:%M:%S') + 'Z' if dt else None
-
+        """Convert to dictionary"""
         return {
             'id': self.id,
             'userId': self.user_id,
             'matchId': self.match_id,
             'message': self.message,
             'status': self.status,
-            'createdAt': _utc_iso(self.created_at),
+            'createdAt': self.created_at.isoformat() if self.created_at else None,
             'user': self.user.to_dict() if self.user else None,
             'match': self.match.to_dict() if self.match else None
         }
@@ -71,21 +65,15 @@ class MatchHistory(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
     def to_dict(self):
-        """Convert to dictionary.
-        All datetimes carry a 'Z' suffix so JavaScript parses them as UTC.
-        """
+        """Convert to dictionary"""
         from models.match import Match
         match = Match.query.get(self.match_id)
-
-        def _utc_iso(dt):
-            return dt.strftime('%Y-%m-%dT%H:%M:%S') + 'Z' if dt else None
-
         return {
             'id': self.id,
             'matchId': self.match_id,
             'role': self.role,
             'attended': self.attended,
-            'createdAt': _utc_iso(self.created_at),
+            'createdAt': self.created_at.isoformat() if self.created_at else None,
             'match': match.to_dict() if match else None
         }
     

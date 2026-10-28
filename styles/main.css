@@ -60,6 +60,13 @@
     --space-12: 3rem;
     --space-16: 4rem;
     --space-20: 5rem;
+    --space-section: clamp(3rem, 10vw, 6rem);
+
+    /* Fluid Typography */
+    --font-size-h1: clamp(2.2rem, 8vw, 4rem);
+    --font-size-h2: clamp(1.8rem, 6vw, 3rem);
+    --font-size-h3: clamp(1.4rem, 4vw, 2rem);
+    --font-size-body: clamp(0.95rem, 2vw, 1.1rem);
 
     /* Border Radius */
     --radius-sm: 0.375rem;
@@ -200,7 +207,7 @@ h6 {
 }
 
 .section {
-    padding: var(--space-20) 0;
+    padding: var(--space-section) 0;
 }
 
 .flex {
@@ -221,6 +228,22 @@ h6 {
 
 .grid {
     display: grid;
+}
+
+.sports-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: var(--space-6);
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.how-it-works-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: var(--space-8);
+    max-width: 1100px;
+    margin: 0 auto;
 }
 
 /* ============================================
@@ -798,8 +821,14 @@ h6 {
 .otp-container {
     display: flex;
     gap: var(--space-2);
-    justify-content: flex-start;
+    justify-content: center;
     margin-top: var(--space-3);
+}
+
+#otpGroup {
+    opacity: 0;
+    transform: translateY(-10px);
+    transition: all 0.3s ease;
 }
 
 .otp-input {
@@ -823,10 +852,25 @@ h6 {
 
 .otp-input.error {
     border-color: #ef4444;
+    animation: shake 0.3s ease;
 }
 
 .otp-input.success {
     border-color: var(--accent-green);
+    background: rgba(16, 185, 129, 0.1);
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-5px); }
+    75% { transform: translateX(5px); }
+}
+
+.form-hint {
+    display: block;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    margin-top: 6px;
 }
 
 /* Inline Verification UI */
@@ -985,6 +1029,39 @@ h6 {
     overflow: hidden;
 }
 
+.page-header {
+    text-align: center;
+    margin-bottom: var(--space-12);
+    padding: 0 var(--space-4);
+}
+
+.page-header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: var(--space-4);
+}
+
+.page-header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: var(--space-4);
+}
+
+.page-title {
+    font-size: var(--font-size-h2);
+    margin-bottom: var(--space-2);
+}
+
+.page-subtitle {
+    color: var(--text-secondary);
+    max-width: 600px;
+    margin: 0 auto;
+}
+
 .hero-content {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -1019,13 +1096,13 @@ h6 {
 }
 
 .hero-title {
-    font-size: clamp(2.5rem, 5vw, 4rem);
+    font-size: var(--font-size-h1);
     font-weight: 800;
     line-height: 1.1;
 }
 
 .hero-description {
-    font-size: 1.2rem;
+    font-size: var(--font-size-body);
     color: var(--text-secondary);
     max-width: 500px;
 }
@@ -3593,661 +3670,189 @@ h6 {
     border-radius: 8px;
     border: 1px solid rgba(34, 197, 94, 0.2);
 }
-
-/* Mobile responsive */
-@media (max-width: 480px) {
-    .otp-digit {
-        width: 38px;
-        height: 46px;
-        font-size: 18px;
-        border-radius: 10px;
-    }
-
-    .otp-inline-inputs {
-        gap: 5px;
-    }
-
-    .otp-inline-section.visible {
-        padding: 12px;
-    }
-
-    .otp-inline-actions {
-        flex-direction: column;
-        gap: 8px;
-    }
-}
-
-/* Mobile Menu Auth Section */
-#mobileMenuAuth {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-3);
-    margin-top: var(--space-2);
-}
-
-#mobileMenuAuth .mobile-nav-link {
-    padding: var(--space-3) 0;
-}
-
-#mobileMenuAuth .btn {
-    width: 100%;
-    justify-content: center;
-}
-
+
 /* ============================================
-   COMPREHENSIVE MOBILE RESPONSIVE OVERHAUL
-   Target: Mobile-first for phones (360px-768px)
+   MOBILE RESPONSIVE SYSTEM
    ============================================ */
 
-/* === TABLET BREAKPOINT (max-width: 768px) === */
+/* === TABLET & MOBILE (max-width: 768px) === */
 @media (max-width: 768px) {
-
-    /* --- Global Layout --- */
-    .section {
-        padding: var(--space-10) 0;
-    }
-
-    .page-title {
-        font-size: 1.5rem;
-    }
-
-    .page-header {
-        margin-bottom: var(--space-6);
-    }
-
-    /* --- Dashboard Page --- */
-    .dashboard-page {
-        padding-top: 80px;
-    }
-
-    /* Dashboard header - stack title and button */
-    .page-header>div[style*="display: flex"] {
-        flex-direction: column !important;
-        align-items: stretch !important;
-    }
-
-    .page-header>div[style*="display: flex"] .btn {
-        width: 100%;
-        justify-content: center;
-    }
-
-    /* --- Mobile Menu Full-Width on phones --- */
-    .mobile-menu {
-        width: 100%;
-        max-width: 100vw;
-        right: -100%;
-        padding: var(--space-6) var(--space-4);
-    }
-
-    .mobile-menu.active {
-        right: 0;
-    }
-
-    .mobile-nav-link {
-        padding: var(--space-4) var(--space-3);
-        font-size: 1.05rem;
-    }
-
-    .filter-bar {
-        flex-direction: column;
-        gap: var(--space-3);
-        padding: var(--space-3);
-    }
-
-    .search-box {
-        min-width: 100%;
-    }
-
-    .filter-bar .form-select,
-    .filter-bar .form-input {
-        width: 100%;
-    }
-
-    .matches-grid {
-        grid-template-columns: 1fr;
-        gap: var(--space-4);
-    }
-
-    /* --- Match Cards --- */
-    .match-card {
-        gap: var(--space-3);
-    }
-
-    .match-card-header {
-        flex-direction: column;
-        gap: var(--space-2);
-    }
-
-    .match-title {
-        font-size: 1.1rem;
-    }
-
-    .match-info {
-        flex-direction: column;
-        gap: var(--space-2);
-    }
-
-    .match-card-footer {
-        flex-direction: column;
-        gap: var(--space-3);
-        align-items: flex-start;
-    }
-
-    .match-card-footer .btn {
-        width: 100%;
-    }
-
-    .contribution {
-        font-size: 1.1rem;
-    }
-
-    /* --- Dashboard Map --- */
-    .dashboard-map,
-    #dashboardMap {
-        height: 250px !important;
-        border-radius: var(--radius-lg);
-    }
-
-    /* --- Create Match Page --- */
-    .create-match-page {
-        padding-top: 80px;
-    }
-
-    .wizard-container {
-        max-width: 100%;
-    }
-
-    .wizard-form {
-        padding: var(--space-5);
-        border-radius: var(--radius-xl);
-    }
-
-    .wizard-progress {
-        gap: var(--space-1);
-        margin-bottom: var(--space-6);
-    }
-
-    .wizard-step-indicator {
-        width: 32px;
-        height: 32px;
-        font-size: 0.85rem;
-    }
-
-    .wizard-actions {
-        flex-direction: column-reverse;
-        gap: var(--space-3);
-        margin-top: var(--space-5);
-    }
-
-    .wizard-actions .btn {
-        width: 100%;
-    }
-
-    .sports-grid {
-        grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-        gap: var(--space-3);
-    }
-
-    .sport-option {
-        padding: var(--space-4);
-    }
-
-    .sport-option-icon {
-        font-size: 1.5rem;
-    }
-
-    .sport-option-name {
-        font-size: 0.8rem;
-    }
-
-    /* Map Picker */
-    .map-picker,
-    #venueMapPicker {
-        height: 250px !important;
-        border-radius: var(--radius-lg);
-    }
-
-    /* --- Auth Pages --- */
-    .auth-page {
-        padding: var(--space-4);
-        padding-top: 80px;
-    }
-
-    .auth-card {
-        padding: var(--space-6);
-    }
-
-    .auth-title {
-        font-size: 1.5rem;
-    }
-
-    /* --- Profile Page --- */
-    .profile-page {
-        padding-top: 80px;
-        padding-bottom: var(--space-8);
-    }
-
-    .profile-header {
-        flex-direction: column;
-        align-items: center;
-        text-align: center;
-        padding: var(--space-5);
-        gap: var(--space-4);
-    }
-
-    .profile-avatar {
-        width: 90px;
-        height: 90px;
-        font-size: 2rem;
-    }
-
-    .profile-name {
-        font-size: 1.4rem;
-    }
-
-    .profile-meta {
-        justify-content: center;
-        gap: var(--space-3);
-    }
-
-    .profile-grid {
-        grid-template-columns: 1fr;
-        gap: var(--space-5);
-    }
-
-    .stats-grid {
-        grid-template-columns: repeat(3, 1fr);
-        gap: var(--space-3);
-    }
-
-    .stat-card {
-        padding: var(--space-3);
-    }
-
-    .stat-card-value {
-        font-size: 1.25rem;
-    }
-
-    .stat-card-label {
-        font-size: 0.7rem;
-    }
-
-    /* Credit Score */
-    .credit-gauge {
-        width: 160px;
-        height: 160px;
-    }
-
-    .credit-score-number {
-        font-size: 2.25rem;
-    }
-
-    /* --- Match Details Page --- */
-    .match-details-grid {
-        grid-template-columns: 1fr !important;
-    }
-
-    .match-details-sidebar {
-        order: -1;
-    }
-
-    .match-detail-map,
-    #matchDetailMap {
-        height: 200px !important;
-        border-radius: var(--radius-lg);
-    }
-
-    /* --- Modals --- */
-    .modal {
-        max-width: 100%;
-        margin: var(--space-4);
-        padding: var(--space-5);
-        border-radius: var(--radius-xl);
-    }
-
-    .modal-title {
-        font-size: 1.25rem;
-    }
-
-    .modal-overlay {
-        padding: var(--space-3);
-    }
-
-    /* --- Toast Notifications --- */
-    .toast-container {
-        left: var(--space-3);
-        right: var(--space-3);
-        top: 80px;
-    }
-
-    .toast {
-        width: 100%;
-        font-size: 0.9rem;
-    }
-
-    /* --- Hero Featured Section --- */
-    .featured-matches-grid,
-    .featured-grid {
-        grid-template-columns: 1fr !important;
-        gap: var(--space-4);
-    }
-
-    /* --- Footer --- */
-    .footer {
-        padding: var(--space-8) 0 var(--space-6);
-    }
-
-    .footer-grid {
-        grid-template-columns: 1fr;
-        gap: var(--space-6);
-    }
-
-    .footer-bottom {
-        flex-direction: column;
-        gap: var(--space-3);
-        text-align: center;
-    }
-
-    /* --- Floating Cards on Hero --- */
-    .floating-card {
-        padding: var(--space-3);
-        font-size: 0.85rem;
-    }
-
-    .floating-card:nth-child(1) {
-        left: 5%;
-        top: 15%;
-    }
-
-    .floating-card:nth-child(2) {
-        right: 2%;
-        bottom: 25%;
-    }
-
-    .floating-card:nth-child(3) {
-        left: 15%;
-        bottom: 10%;
-    }
-
-    /* --- Tabs --- */
-    .tabs {
-        width: 100%;
-        overflow-x: auto;
-        -webkit-overflow-scrolling: touch;
-    }
-
-    .tab {
-        padding: var(--space-2) var(--space-4);
-        font-size: 0.85rem;
-        white-space: nowrap;
-    }
-
-    /* --- Buttons Touch Targets --- */
-    .btn {
-        min-height: 44px;
-        padding: var(--space-3) var(--space-5);
-    }
-
-    .btn-lg {
-        padding: var(--space-4) var(--space-6);
-    }
-
-    .btn-sm {
-        min-height: 36px;
-        padding: var(--space-2) var(--space-3);
-    }
-
-    /* --- Cards --- */
-    .card {
-        padding: var(--space-4);
-        border-radius: var(--radius-lg);
-    }
-
-    .card:hover {
-        transform: none;
-    }
-
-    /* --- Sport Tags --- */
-    .sport-tags {
-        justify-content: center;
-    }
-
-    /* --- Form inputs larger tap targets --- */
-    .form-input {
-        padding: var(--space-3) var(--space-4);
-        font-size: 16px;
-        /* Prevents iOS zoom on focus */
-    }
-
-    /* --- Inline styles override for grids --- */
-    [style*="grid-template-columns: 1fr 1fr"] {
-        grid-template-columns: 1fr !important;
-    }
-}
-
-/* === SMALL PHONE BREAKPOINT (max-width: 480px) === */
-@media (max-width: 480px) {
-
-    /* --- Global --- */
+    /* Global Adjustments */
     .container {
-        padding: 0 var(--space-3);
-    }
-
-    body {
-        font-size: 15px;
-    }
-
-    /* --- Hero --- */
-    .hero {
-        padding-top: 80px;
-        padding-bottom: var(--space-8);
-        min-height: auto;
-    }
-
-    .hero-title {
-        font-size: 1.75rem;
-    }
-
-    .hero-description {
-        font-size: 1rem;
-    }
-
-    .hero-badge {
-        font-size: 0.8rem;
-        padding: var(--space-1) var(--space-3);
-    }
-
-    .hero-stats {
-        gap: var(--space-3);
+        padding: 0 var(--space-4);
     }
 
     .stat-value {
         font-size: 1.5rem;
     }
 
-    .stat-label {
-        font-size: 0.75rem;
+    /* Hero Section */
+    .hero {
+        padding-top: 100px;
+        min-height: auto;
+        padding-bottom: var(--space-12);
     }
 
-    /* --- Navbar --- */
-    .logo {
-        font-size: 1.2rem;
-        gap: var(--space-2);
+    .hero-content {
+        grid-template-columns: 1fr;
+        gap: var(--space-12);
+        text-align: center;
     }
 
-    .logo-icon {
-        width: 34px;
-        height: 34px;
+    .hero-text {
+        align-items: center;
     }
 
-    .nav-actions .btn {
+    .hero-description {
+        margin: 0 auto;
+    }
+
+    .hero-actions {
+        justify-content: center;
+    }
+
+    .hero-visual {
+        margin-top: var(--space-8);
+        min-height: 300px;
+    }
+
+    .hero-image-container {
+        max-width: 350px;
+    }
+
+    .floating-card {
         padding: var(--space-2) var(--space-3);
         font-size: 0.85rem;
     }
 
-    /* --- Wizard --- */
-    .wizard-form {
-        padding: var(--space-4);
+    /* Navigation */
+    .nav-links, .nav-actions {
+        display: none;
     }
 
-    .wizard-step-indicator {
-        width: 28px;
-        height: 28px;
-        font-size: 0.75rem;
+    .mobile-menu-btn {
+        display: flex;
     }
 
-    /* --- Profile --- */
-    .profile-avatar {
-        width: 72px;
-        height: 72px;
-        font-size: 1.75rem;
+    /* Page Layouts */
+    .dashboard-page, .profile-page, .auth-page, .create-match-page {
+        padding-top: 100px;
     }
 
-    .profile-name {
-        font-size: 1.2rem;
+    .page-header {
+        flex-direction: column;
+        gap: var(--space-4);
+        align-items: stretch;
+        text-align: center;
     }
 
-    .stats-grid {
-        grid-template-columns: repeat(3, 1fr);
-        gap: var(--space-2);
+    /* Grids */
+    .matches-grid, .footer-grid, .profile-grid {
+        grid-template-columns: 1fr;
+        gap: var(--space-6);
     }
 
-    .stat-card {
-        padding: var(--space-2);
+    .sports-grid {
+        grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
     }
 
-    .stat-card-value {
-        font-size: 1rem;
+    /* Forms */
+    .wizard-progress {
+        overflow-x: auto;
+        padding-bottom: var(--space-4);
+        justify-content: flex-start;
     }
 
-    .stat-card-label {
-        font-size: 0.65rem;
+    .auth-container {
+        padding: 0;
     }
 
-    /* --- Credit Score --- */
-    .credit-gauge {
-        width: 130px;
-        height: 130px;
-    }
-
-    .credit-score-number {
-        font-size: 1.75rem;
-    }
-
-    .credit-score-label {
-        font-size: 0.7rem;
-    }
-
-    /* --- Auth --- */
     .auth-card {
-        padding: var(--space-5);
+        padding: var(--space-6);
     }
 
-    .auth-title {
-        font-size: 1.3rem;
-    }
-
-    /* --- Modals --- */
+    /* Modals */
     .modal {
-        margin: var(--space-2);
-        padding: var(--space-4);
-    }
-
-    /* --- Map Pickers smaller height --- */
-    .map-picker,
-    #venueMapPicker,
-    #matchDetailMap,
-    #dashboardMap {
-        height: 200px !important;
-    }
-
-    /* --- Cards --- */
-    .card {
-        padding: var(--space-3);
+        width: 95%;
+        padding: var(--space-6);
     }
 }
 
-/* === VERY SMALL PHONE (max-width: 360px) === */
-@media (max-width: 360px) {
-
-    .container {
-        padding: 0 var(--space-2);
+/* === PHONE (max-width: 480px) === */
+@media (max-width: 480px) {
+    body {
+        font-size: 15px;
     }
 
     .hero-title {
-        font-size: 1.5rem;
+        font-size: 2rem;
     }
 
-    .hero-description {
-        font-size: 0.9rem;
+    .stat-item {
+        flex: 1;
     }
 
-    .wizard-step-indicator {
-        width: 24px;
-        height: 24px;
-        font-size: 0.7rem;
+    .stat-value {
+        font-size: 1.25rem;
     }
 
-    .auth-card {
+    .floating-card:nth-child(1) { left: 0; top: 0; }
+    .floating-card:nth-child(2) { right: 0; bottom: 10%; }
+    .floating-card:nth-child(3) { left: 10%; bottom: -10%; }
+
+    .btn-lg {
+        width: 100%;
         padding: var(--space-4);
     }
 
-    .match-title {
-        font-size: 1rem;
+    /* OTP Inputs */
+    .otp-container {
+        gap: var(--space-2);
     }
 
-    .profile-avatar {
-        width: 60px;
-        height: 60px;
-        font-size: 1.5rem;
-    }
-
-    .profile-name {
+    .otp-input, .otp-digit {
+        width: 38px;
+        height: 48px;
         font-size: 1.1rem;
     }
 
-    .stats-grid {
-        grid-template-columns: 1fr 1fr 1fr;
+    /* Navigation */
+    .logo span {
+        font-size: 1.25rem;
+    }
+
+    .mobile-menu {
+        width: 100%;
+        max-width: 100%;
     }
 }
 
-/* === LANDSCAPE PHONE === */
-@media (max-height: 500px) and (orientation: landscape) {
-    .hero {
-        min-height: auto;
-        padding: 80px 0 var(--space-8);
+/* === SMALL PHONE (max-width: 360px) === */
+@media (max-width: 360px) {
+    .container {
+        padding: 0 var(--space-3);
     }
 
-    .auth-page {
-        padding-top: 70px;
-        align-items: flex-start;
+    .hero-title {
+        font-size: 1.75rem;
+    }
+
+    .stat-value {
+        font-size: 1.1rem;
+    }
+
+    .stat-label {
+        font-size: 0.7rem;
     }
 }
 
-/* === TOUCH DEVICE OPTIMIZATIONS === */
-@media (hover: none) and (pointer: coarse) {
-
-    /* Disable hover lift effects on touch devices */
-    .card:hover {
-        transform: none;
+/* === TOUCH OPTIMIZATIONS === */
+@media (hover: none) {
+    .card:hover, .btn:hover {
+        transform: none !important;
     }
 
-    .btn-primary:hover {
-        transform: none;
-    }
-
-    /* Larger tap targets */
-    .nav-link {
-        padding: var(--space-2) var(--space-3);
-    }
-
-    .sport-tag {
-        padding: var(--space-2) var(--space-4);
-        min-height: 36px;
-    }
-
-    /* Remove hover shimmer on touch */
-    .btn:hover::before {
-        display: none;
+    .btn-primary:active {
+        transform: scale(0.98);
     }
 }

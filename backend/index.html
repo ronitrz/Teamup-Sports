@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description"
+        content="TeamUp Sports - Connect with players, join teams, and never miss a game. Find your perfect match and play together.">
+    <title>TeamUp Sports - Find Your Team, Play Together</title>
+    <link rel="stylesheet" href="styles/main.css">
+    <link rel="icon" type="image/svg+xml"
+        href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚽</text></svg>">
+</head>
+
+<body>
+    <!-- Navigation -->
+    <nav class="navbar" id="navbar">
+        <div class="container navbar-content">
+            <a href="index.html" class="logo">
+                <div class="logo-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10" />
+                        <path d="m4.93 4.93 4.24 4.24" />
+                        <path d="m14.83 9.17 4.24-4.24" />
+                        <path d="m14.83 14.83 4.24 4.24" />
+                        <path d="m9.17 14.83-4.24 4.24" />
+                        <circle cx="12" cy="12" r="4" />
+                    </svg>
+                </div>
+                <span>Team<span class="text-gradient">Up</span></span>
+            </a>
+
+            <div class="nav-links">
+                <a href="index.html" class="nav-link active">Home</a>
+                <a href="dashboard.html" class="nav-link">Matches</a>
+                <a href="create-match.html" class="nav-link">Create Match</a>
+                <a href="watch-live.html" class="nav-link" style="color: #ef4444;">🔴 Watch Live</a>
+                <a href="#how-it-works" class="nav-link">How It Works</a>
+            </div>
+
+            <div class="nav-actions">
+                <a href="login.html" class="btn btn-ghost">Login</a>
+                <a href="register.html" class="btn btn-primary">Sign Up</a>
+            </div>
+
+            <button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Toggle menu">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Mobile Menu -->
+    <div class="mobile-menu" id="mobileMenu">
+        <div class="mobile-menu-header">
+            <a href="index.html" class="logo">
+                <div class="logo-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10" />
+                        <circle cx="12" cy="12" r="4" />
+                    </svg>
+                </div>
+                <span>Team<span class="text-gradient">Up</span></span>
+            </a>
+            <button class="modal-close" id="closeMobileMenu">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="18" y1="6" x2="6" y2="18" />
+                    <line x1="6" y1="6" x2="18" y2="18" />
+                </svg>
+            </button>
+        </div>
+        <div class="mobile-nav-links">
+            <a href="index.html" class="mobile-nav-link active">Home</a>
+            <a href="dashboard.html" class="mobile-nav-link">Matches</a>
+            <a href="create-match.html" class="mobile-nav-link">Create Match</a>
+            <a href="watch-live.html" class="mobile-nav-link" style="color: #ef4444;">🔴 Watch Live</a>
+            <a href="#how-it-works" class="mobile-nav-link">How It Works</a>
+            <hr style="border-color: var(--border-default); margin: var(--space-4) 0;">
+            <div id="mobileMenuAuth">
+                <a href="login.html" class="mobile-nav-link">Login</a>
+                <a href="register.html" class="btn btn-primary" style="margin-top: var(--space-4);">Sign Up</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="container">
+            <div class="hero-content">
+                <div class="hero-text">
+                    <div class="hero-badge">
+                        <span class="dot"></span>
+                        <span>Live matches happening now</span>
+                    </div>
+
+                    <h1 class="hero-title">
+                        Find Your <span class="text-gradient text-glow">Perfect Team</span> & Play Together
+                    </h1>
+
+                    <p class="hero-description">
+                        Connect with passionate players, join incomplete teams, or create your own match.
+                        Never miss a game again with TeamUp Sports - where every player finds their place.
+                    </p>
+
+                    <div class="hero-actions">
+                        <a href="dashboard.html" class="btn btn-primary btn-lg">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <circle cx="11" cy="11" r="8" />
+                                <path d="m21 21-4.3-4.3" />
+                            </svg>
+                            Find Matches
+                        </a>
+                        <a href="create-match.html" class="btn btn-secondary btn-lg">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <line x1="12" y1="5" x2="12" y2="19" />
+                                <line x1="5" y1="12" x2="19" y2="12" />
+                            </svg>
+                            Create Match
+                        </a>
+                    </div>
+
+                    <div class="hero-stats">
+                        <div class="stat-item">
+                            <div class="stat-value" id="statPlayers">—</div>
+                            <div class="stat-label">Active Players</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value" id="statMatches">—</div>
+                            <div class="stat-label">Total Matches</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value" id="statSports">—</div>
+                            <div class="stat-label">Sports</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="hero-visual">
+                    <div class="hero-image-container">
+                        <!-- Floating Cards (dynamically populated) -->
+                        <div class="floating-card" id="floatingCard1" style="padding: 1rem 1.5rem;">
+                            <div style="display: flex; align-items: center; gap: 0.75rem;">
+                                <div id="fc1Icon"
+                                    style="width: 40px; height: 40px; background: linear-gradient(135deg, #10b981, #22d3ee); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                                    🏏</div>
+                                <div>
+                                    <div style="font-weight: 600;" id="fc1Title">Cricket Match</div>
+                                    <div style="font-size: 0.8rem; color: var(--text-muted);" id="fc1Sub">3 spots left
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="floating-card" id="floatingCard2" style="padding: 1rem 1.5rem;">
+                            <div style="display: flex; align-items: center; gap: 0.75rem;">
+                                <div id="fc2Icon"
+                                    style="width: 40px; height: 40px; background: linear-gradient(135deg, #f97316, #fbbf24); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                                    ⚽</div>
+                                <div>
+                                    <div style="font-weight: 600;" id="fc2Title">Football 5v5</div>
+                                    <div style="font-size: 0.8rem; color: var(--text-muted);" id="fc2Sub">Starting in
+                                        2h</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="floating-card" id="floatingCard3" style="padding: 1rem 1.5rem;">
+                            <div style="display: flex; align-items: center; gap: 0.75rem;">
+                                <div class="credit-mini" id="fc3Ring"
+                                    style="width: 50px; height: 50px; background: conic-gradient(var(--accent-green) 85%, var(--border-default) 0); border-radius: 50%; display: flex; align-items: center; justify-content: center; position: relative;">
+                                    <div id="fc3Score"
+                                        style="width: 40px; height: 40px; background: var(--bg-secondary); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.9rem;">
+                                        85</div>
+                                </div>
+                                <div>
+                                    <div style="font-weight: 600;">Credit Score</div>
+                                    <div style="font-size: 0.8rem;" id="fc3Label" style="color: var(--accent-green);">
+                                        Excellent</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Featured Sports Section -->
+    <section class="section" id="sports">
+        <div class="container">
+            <div style="text-align: center; margin-bottom: var(--space-12);">
+                <h2 class="heading-display text-gradient" style="font-size: 0.9rem; margin-bottom: var(--space-3);">
+                    Popular Sports</h2>
+                <h3 style="font-size: 2rem; font-weight: 700;">Choose Your Game</h3>
+            </div>
+
+            <div class="sports-grid" style="max-width: 800px; margin: 0 auto;">
+                <div class="sport-option" onclick="window.location.href='dashboard.html?sport=cricket'">
+                    <div class="sport-option-icon">🏏</div>
+                    <div class="sport-option-name">Cricket</div>
+                </div>
+                <div class="sport-option" onclick="window.location.href='dashboard.html?sport=football'">
+                    <div class="sport-option-icon">⚽</div>
+                    <div class="sport-option-name">Football</div>
+                </div>
+                <div class="sport-option" onclick="window.location.href='dashboard.html?sport=basketball'">
+                    <div class="sport-option-icon">🏀</div>
+                    <div class="sport-option-name">Basketball</div>
+                </div>
+                <div class="sport-option" onclick="window.location.href='dashboard.html?sport=badminton'">
+                    <div class="sport-option-icon">🏸</div>
+                    <div class="sport-option-name">Badminton</div>
+                </div>
+                <div class="sport-option" onclick="window.location.href='dashboard.html?sport=tennis'">
+                    <div class="sport-option-icon">🎾</div>
+                    <div class="sport-option-name">Tennis</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- How It Works Section -->
+    <section class="section" id="how-it-works" style="background: var(--bg-secondary);">
+        <div class="container">
+            <div style="text-align: center; margin-bottom: var(--space-12);">
+                <h2 class="heading-display text-gradient" style="font-size: 0.9rem; margin-bottom: var(--space-3);">
+                    Simple Process</h2>
+                <h3 style="font-size: 2rem; font-weight: 700;">How It Works</h3>
+            </div>
+
+            <div
+                style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: var(--space-8); max-width: 1000px; margin: 0 auto;">
+                <div class="card card-glow" style="text-align: center;">
+                    <div
+                        style="width: 60px; height: 60px; background: var(--primary-gradient); border-radius: var(--radius-xl); margin: 0 auto var(--space-5); display: flex; align-items: center; justify-content: center; font-size: 1.5rem;">
+                        1</div>
+                    <h4 style="font-size: 1.25rem; margin-bottom: var(--space-3);">Create Account</h4>
+                    <p style="color: var(--text-secondary);">Sign up with your email & password to get
+                        started.</p>
+                </div>
+
+                <div class="card card-glow" style="text-align: center;">
+                    <div
+                        style="width: 60px; height: 60px; background: var(--primary-gradient); border-radius: var(--radius-xl); margin: 0 auto var(--space-5); display: flex; align-items: center; justify-content: center; font-size: 1.5rem;">
+                        2</div>
+                    <h4 style="font-size: 1.25rem; margin-bottom: var(--space-3);">Find or Create</h4>
+                    <p style="color: var(--text-secondary);">Browse matches near you or create your own and invite
+                        players.</p>
+                </div>
+
+                <div class="card card-glow" style="text-align: center;">
+                    <div
+                        style="width: 60px; height: 60px; background: var(--primary-gradient); border-radius: var(--radius-xl); margin: 0 auto var(--space-5); display: flex; align-items: center; justify-content: center; font-size: 1.5rem;">
+                        3</div>
+                    <h4 style="font-size: 1.25rem; margin-bottom: var(--space-3);">Join & Play</h4>
+                    <p style="color: var(--text-secondary);">Request to join, get approved by captain, and show up to
+                        play!</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Featured Matches Preview -->
+    <section class="section" id="matches">
+        <div class="container">
+            <div
+                style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-8); flex-wrap: wrap; gap: var(--space-4);">
+                <div>
+                    <h2 class="heading-display text-gradient" style="font-size: 0.9rem; margin-bottom: var(--space-2);">
+                        All Matches</h2>
+                    <h3 style="font-size: 1.75rem; font-weight: 700;">Featured Matches</h3>
+                </div>
+                <a href="dashboard.html" class="btn btn-outline">View All Matches</a>
+            </div>
+
+            <div class="matches-grid" id="featuredMatches">
+                <!-- Match cards will be dynamically inserted -->
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="section"
+        style="background: linear-gradient(135deg, rgba(139, 92, 246, 0.2) 0%, rgba(34, 211, 238, 0.1) 100%);">
+        <div class="container" style="text-align: center;">
+            <h2 style="font-size: 2.5rem; font-weight: 700; margin-bottom: var(--space-4);">Ready to <span
+                    class="text-gradient">Team Up</span>?</h2>
+            <p
+                style="font-size: 1.2rem; color: var(--text-secondary); margin-bottom: var(--space-8); max-width: 500px; margin-left: auto; margin-right: auto;">
+                Join thousands of players who found their perfect team. Your next game is just a click away!
+            </p>
+            <div style="display: flex; gap: var(--space-4); justify-content: center; flex-wrap: wrap;">
+                <a href="register.html" class="btn btn-primary btn-lg">Get Started Free</a>
+                <a href="dashboard.html" class="btn btn-secondary btn-lg">Browse Matches</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-brand">
+                    <a href="index.html" class="logo">
+                        <div class="logo-icon">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <circle cx="12" cy="12" r="10" />
+                                <circle cx="12" cy="12" r="4" />
+                            </svg>
+                        </div>
+                        <span>Team<span class="text-gradient">Up</span></span>
+                    </a>
+                    <p class="footer-description">
+                        Connecting players, building teams, and making sports accessible to everyone.
+                    </p>
+                    <div class="footer-social">
+                        <a href="#" class="social-link" aria-label="Twitter">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                                <path
+                                    d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+                            </svg>
+                        </a>
+                        <a href="#" class="social-link" aria-label="Instagram">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <rect x="2" y="2" width="20" height="20" rx="5" />
+                                <circle cx="12" cy="12" r="4" />
+                                <circle cx="18" cy="6" r="1" />
+                            </svg>
+                        </a>
+                        <a href="#" class="social-link" aria-label="Facebook">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                                <path
+                                    d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
+                            </svg>
+                        </a>
+                    </div>
+                </div>
+
+                <div class="footer-column">
+                    <h4>Product</h4>
+                    <div class="footer-links">
+                        <a href="dashboard.html" class="footer-link">Find Matches</a>
+                        <a href="create-match.html" class="footer-link">Create Match</a>
+                        <a href="#" class="footer-link">Pricing</a>
+                        <a href="#" class="footer-link">Mobile App</a>
+                    </div>
+                </div>
+
+                <div class="footer-column">
+                    <h4>Company</h4>
+                    <div class="footer-links">
+                        <a href="#" class="footer-link">About Us</a>
+                        <a href="#" class="footer-link">Careers</a>
+                        <a href="#" class="footer-link">Blog</a>
+                        <a href="#" class="footer-link">Contact</a>
+                    </div>
+                </div>
+
+                <div class="footer-column">
+                    <h4>Support</h4>
+                    <div class="footer-links">
+                        <a href="#" class="footer-link">Help Center</a>
+                        <a href="#" class="footer-link">Safety</a>
+                        <a href="#" class="footer-link">Privacy Policy</a>
+                        <a href="#" class="footer-link">Terms of Service</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="footer-bottom">
+                <p>&copy; TeamUp Sports. All rights reserved.</p>
+                <p>Driven by Passion, Powered by Performance</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Toast Container -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- Scripts -->
+    <script src="js/env-config.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/app.js"></script>
+    <script src="js/geolocation.js"></script>
+    <script src="js/matches.js"></script>
+    <script>
+        // Initialize featured matches with location filtering
+        document.addEventListener('DOMContentLoaded', () => {
+            if (typeof renderFeaturedMatches === 'function') {
+                // Auto-request location, then render nearby matches
+                if (typeof GeoLocation !== 'undefined') {
+                    GeoLocation.getLocation().then(() => {
+                        Storage.set('teamup_location_filter', true);
+                        renderFeaturedMatches();
+                    }).catch(() => {
+                        renderFeaturedMatches();
+                    });
+                } else {
+                    renderFeaturedMatches();
+                }
+            }
+            // Populate floating hero cards with real data
+            updateFloatingCards();
+            // Fetch and display real platform stats
+            updateHeroStats();
+        });
+
+        function formatStatNumber(num) {
+            if (num >= 1000000) return (num / 1000000).toFixed(1).replace(/\.0$/, '') + 'M';
+            if (num >= 1000) return (num / 1000).toFixed(1).replace(/\.0$/, '') + 'K';
+            return num.toString();
+        }
+
+        async function updateHeroStats() {
+            try {
+                const resp = await fetch((typeof API_CONFIG !== 'undefined' ? API_CONFIG.BASE_URL : 'http://localhost:5000/api') + '/stats');
+                if (!resp.ok) throw new Error('Failed');
+                const data = await resp.json();
+
+                const playersEl = document.getElementById('statPlayers');
+                const matchesEl = document.getElementById('statMatches');
+                const sportsEl = document.getElementById('statSports');
+
+                if (playersEl) playersEl.textContent = formatStatNumber(data.totalUsers || 0) + '+';
+                if (matchesEl) matchesEl.textContent = formatStatNumber(data.totalMatches || 0);
+                if (sportsEl) sportsEl.textContent = (data.uniqueSports || 0) + '+';
+            } catch (e) {
+                // Fallback to static values
+                const playersEl = document.getElementById('statPlayers');
+                const matchesEl = document.getElementById('statMatches');
+                const sportsEl = document.getElementById('statSports');
+                if (playersEl) playersEl.textContent = '5K+';
+                if (matchesEl) matchesEl.textContent = '1.2K';
+                if (sportsEl) sportsEl.textContent = '15+';
+            }
+        }
+
+        async function updateFloatingCards() {
+            // ─── Credit Score Card (fetch from backend API) ───
+            const token = localStorage.getItem('teamup_token');
+            if (token) {
+                fetch((typeof API_CONFIG !== 'undefined' ? API_CONFIG.BASE_URL : 'http://localhost:5000/api') + '/users/me', {
+                    headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' }
+                })
+                    .then(r => r.ok ? r.json() : Promise.reject())
+                    .then(data => {
+                        if (data.user && data.user.creditScore !== undefined) {
+                            applyCreditScore(data.user.creditScore);
+                        } else {
+                            applyCreditScore(100);
+                        }
+                    })
+                    .catch(() => {
+                        // Fallback to localStorage user
+                        const user = (typeof UserSession !== 'undefined') ? UserSession.getCurrentUser() : null;
+                        if (user && user.creditScore !== undefined) applyCreditScore(user.creditScore);
+                        else applyCreditScore(100);
+                    });
+            } else {
+                // Not logged in — try localStorage
+                const user = (typeof UserSession !== 'undefined') ? UserSession.getCurrentUser() : null;
+                if (user && user.creditScore !== undefined) applyCreditScore(user.creditScore);
+                else applyCreditScore(100);
+            }
+
+            // ─── Match Cards (from backend API) ───
+            try {
+                const result = await MatchesAPI.list({ status: 'open' });
+                const upcoming = result.matches || [];
+
+                // Card 1 — first upcoming match
+                if (upcoming.length > 0) {
+                    const m1 = upcoming[0];
+                    const sport1 = (typeof getSportById === 'function') ? getSportById(m1.sport) : { icon: '🏏', color: '#10b981' };
+                    const spots1 = m1.spotsLeft !== undefined ? m1.spotsLeft : (m1.totalPlayers - (m1.currentPlayers || 0));
+
+                    const fc1Icon = document.getElementById('fc1Icon');
+                    const fc1Title = document.getElementById('fc1Title');
+                    const fc1Sub = document.getElementById('fc1Sub');
+
+                    if (fc1Icon) {
+                        fc1Icon.textContent = sport1.icon;
+                        fc1Icon.style.background = `linear-gradient(135deg, ${sport1.color}, ${sport1.color}88)`;
+                    }
+                    if (fc1Title) fc1Title.textContent = m1.title.length > 20 ? m1.title.substring(0, 20) + '…' : m1.title;
+                    if (fc1Sub) fc1Sub.textContent = spots1 > 0 ? `${spots1} spot${spots1 > 1 ? 's' : ''} left` : 'Team Full';
+                }
+
+                // Card 2 — second upcoming match
+                if (upcoming.length > 1) {
+                    const m2 = upcoming[1];
+                    const sport2 = (typeof getSportById === 'function') ? getSportById(m2.sport) : { icon: '⚽', color: '#f97316' };
+                    const now = new Date();
+                    const matchTime = new Date(m2.dateTime);
+                    const diffH = Math.max(0, Math.round((matchTime - now) / 3600000));
+
+                    const fc2Icon = document.getElementById('fc2Icon');
+                    const fc2Title = document.getElementById('fc2Title');
+                    const fc2Sub = document.getElementById('fc2Sub');
+
+                    if (fc2Icon) {
+                        fc2Icon.textContent = sport2.icon;
+                        fc2Icon.style.background = `linear-gradient(135deg, ${sport2.color}, ${sport2.color}88)`;
+                    }
+                    if (fc2Title) fc2Title.textContent = m2.title.length > 20 ? m2.title.substring(0, 20) + '…' : m2.title;
+                    if (fc2Sub) {
+                        if (m2.status === 'live') {
+                            fc2Sub.textContent = '🔴 Live Now';
+                            fc2Sub.style.color = '#ef4444';
+                        } else if (diffH < 1) {
+                            fc2Sub.textContent = 'Starting soon';
+                            fc2Sub.style.color = '#fbbf24';
+                        } else if (diffH < 24) {
+                            fc2Sub.textContent = `Starting in ${diffH}h`;
+                        } else {
+                            const days = Math.round(diffH / 24);
+                            fc2Sub.textContent = `In ${days} day${days > 1 ? 's' : ''}`;
+                        }
+                    }
+                }
+            } catch (e) {
+                console.log('Could not fetch matches for floating cards:', e);
+            }
+        }
+
+        function applyCreditScore(score) {
+            const pct = Math.min(score, 100);
+            const ring = document.getElementById('fc3Ring');
+            const scoreEl = document.getElementById('fc3Score');
+            const labelEl = document.getElementById('fc3Label');
+
+            if (scoreEl) scoreEl.textContent = score;
+            if (ring) {
+                let color = '#10b981';
+                if (score < 50) color = '#ef4444';
+                else if (score < 70) color = '#f97316';
+                else if (score < 85) color = '#fbbf24';
+                ring.style.background = `conic-gradient(${color} ${pct}%, var(--border-default) 0)`;
+            }
+            if (labelEl) {
+                let label = 'Excellent', labelColor = '#10b981';
+                if (score < 50) { label = 'Poor'; labelColor = '#ef4444'; }
+                else if (score < 70) { label = 'Average'; labelColor = '#f97316'; }
+                else if (score < 85) { label = 'Good'; labelColor = '#fbbf24'; }
+                labelEl.textContent = label;
+                labelEl.style.color = labelColor;
+            }
+        }
+    </script>
+</body>
+
+</html>

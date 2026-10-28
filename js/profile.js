@@ -1,360 +1,137 @@
 /**
  * TeamUp Sports - Profile Module
- * All data is fetched from the live backend API.
- * No demo / sample data is ever used.
+ * Handles user profile display, credit score, and match history
  */
 
-// Module-level store for the live history array (used by filter tabs)
-let _liveHistory = [];
-
 // ============================================
-// Profile Loading
+// Profile Rendering
 // ============================================
 
 /**
+ * Load and display user profile from backend API
+ */
+/**
  * Load and display user profile from backend API.
- * Redirects to login if not authenticated.
+ * If ?id=<userId> is present in the URL, load that user's public profile.
+ * Otherwise load the logged-in user's own profile.
  */
 async function loadProfile() {
-    if (!AuthAPI.isLoggedIn()) {
-        window.location.href = 'login.html?redirect=profile.html';
+    const params = new URLSearchParams(window.location.search);
+    const viewUserId = params.get('id');
+    const loggedInUser = UserSession.getCurrentUser();
+    const isOwnProfile = !viewUserId || (loggedInUser && String(loggedInUser.id) === String(viewUserId));
+
+    // Show/hide edit button based on whose profile this is
+    const editBtn = document.querySelector('.profile-header button[onclick="openEditProfile()"]');
+    const avatarUploadOverlay = document.querySelector('.profile-avatar-container');
+
+    if (!isOwnProfile) {
+        if (editBtn) editBtn.style.display = 'none';
+        // Disable avatar click-to-upload for other users
+        if (avatarUploadOverlay) avatarUploadOverlay.style.cursor = 'default';
+        if (avatarUploadOverlay) avatarUploadOverlay.onclick = null;
+
+        // Load the other user's public profile
+        try {
+            const result = await UsersAPI.getUserById(viewUserId);
+            const user = result.user;
+            renderProfileHeader(user);
+            renderCreditScore(user.creditScore !== undefined ? user.creditScore : 100);
+            renderStats(user.stats);
+            renderMatchHistory([]);
+            // Hide pending requests section for other users
+            const pendingSection = document.getElementById('pendingRequestsSection');
+            if (pendingSection) pendingSection.style.display = 'none';
+            // Update page title
+            document.title = `${user.name}'s Profile - TeamUp Sports`;
+        } catch (err) {
+            console.error('Failed to load user profile:', err);
+            const content = document.querySelector('.profile-page .container');
+            if (content) content.innerHTML = `<div style="text-align:center;padding:4rem;color:var(--text-muted);">
+                <h2>Profile not found</h2><p>This user could not be loaded.</p>
+                <a href="dashboard.html" class="btn btn-primary" style="margin-top:1rem;">Back to Matches</a>
+            </div>`;
+        }
         return;
     }
 
+    // Own profile: full view with all data
     try {
-        // Fetch full profile (includes stats + credit score)
-        const profileResult = await UsersAPI.getProfile();
-        const user = profileResult.user;
+        const result = await UsersAPI.getProfile();
+        const user = result.user;
 
-        // Keep localStorage in sync (strip large images to avoid quota errors)
+        // Update localStorage with latest data
         UserSession.setUser(user);
 
         renderProfileHeader(user);
+        renderCreditScore(user.creditScore !== undefined ? user.creditScore : 100);
+        renderStats(user.stats);
 
-        // Fetch detailed stats (includes real attendanceRate)
+        // Load match history from API
         try {
-            const statsResult = await UsersAPI.getStats();
-            renderCreditScore(user.creditScore !== undefined ? user.creditScore : 100, statsResult.attendanceRate);
-            renderStats(statsResult.stats);
-        } catch (_) {
-            // Fallback: use embedded stats from profile response
-            renderCreditScore(user.creditScore !== undefined ? user.creditScore : 100, null);
-            renderStats(user.stats);
+            const historyResult = await UsersAPI.getMatchHistory();
+            renderMatchHistory(historyResult.history || []);
+        } catch (e) {
+            renderMatchHistory(user.history || []);
         }
 
-        // Fetch match history
-        await loadMatchHistory('all');
-
-        // Fetch pending join requests
         loadPendingRequests();
-
     } catch (err) {
-        console.error('[Profile] Failed to load profile:', err);
-        // If token is invalid the auth layer will redirect to login.
-        // For any other error, show a message.
-        const container = document.getElementById('matchHistoryTimeline');
-        if (container) {
-            container.innerHTML = `<div style="text-align:center;padding:2rem;color:var(--text-muted);">
-                <p>Failed to load profile. Please try refreshing.</p>
-            </div>`;
+        // Fallback to localStorage
+        let user = UserSession.getCurrentUser();
+        if (user) {
+            renderProfileHeader(user);
+            renderCreditScore(user.creditScore !== undefined ? user.creditScore : 100);
+            renderStats(user.stats);
+            renderMatchHistory([]);
+            loadPendingRequests();
+        } else {
+            console.error(err);
         }
     }
 }
 
-// ============================================
-// Profile Header
-// ============================================
 
+/**
+ * Render profile header
+ */
 function renderProfileHeader(user) {
     const avatarInitials = document.getElementById('profileAvatarInitials');
-    const avatarImage    = document.getElementById('profileAvatarImage');
-    const nameEl         = document.getElementById('profileName');
-    const locationEl     = document.getElementById('profileLocation');
-    const joinedEl       = document.getElementById('profileJoined');
-    const sportsEl       = document.getElementById('profileSports');
+    const avatarImage = document.getElementById('profileAvatarImage');
+    const name = document.getElementById('profileName');
+    const location = document.getElementById('profileLocation');
+    const joined = document.getElementById('profileJoined');
+    const sportsContainer = document.getElementById('profileSports');
 
-    // Profile picture
+    // Handle profile picture
     if (user.profilePicture) {
-        if (avatarImage)    { avatarImage.src = user.profilePicture; avatarImage.style.display = 'block'; }
-        if (avatarInitials)   avatarInitials.style.display = 'none';
+        if (avatarImage) {
+            avatarImage.src = user.profilePicture;
+            avatarImage.style.display = 'block';
+        }
+        if (avatarInitials) {
+            avatarInitials.style.display = 'none';
+        }
     } else {
         if (avatarInitials) {
-            const initials = (user.name || 'U')
-                .split(' ').map(n => n.charAt(0)).join('').toUpperCase().slice(0, 2);
+            const initials = user.name.split(' ').map(n => n.charAt(0)).join('').toUpperCase();
             avatarInitials.textContent = initials;
             avatarInitials.style.display = 'block';
         }
-        if (avatarImage) avatarImage.style.display = 'none';
-    }
-
-    if (nameEl)     nameEl.textContent  = user.name || '—';
-    if (locationEl) locationEl.textContent = escapeHTML(user.location) || (
-        [user.city, user.state, user.country].filter(Boolean).join(', ') || 'Not specified'
-    );
-    if (joinedEl && user.joinedDate) {
-        joinedEl.textContent = formatDate(user.joinedDate, { month: 'long', year: 'numeric' });
-    }
-
-    if (sportsEl && Array.isArray(user.sports)) {
-        if (user.sports.length === 0) {
-            sportsEl.innerHTML = `<span style="color:var(--text-muted);font-size:0.85rem;">No sports selected</span>`;
-        } else {
-            sportsEl.innerHTML = user.sports.map(sportId => {
-                const sport = getSportById(sportId);
-                return `<span class="sport-tag selected">${sport.icon} ${sport.name}</span>`;
-            }).join('');
-        }
-    }
-}
-
-// ============================================
-// Credit Score
-// ============================================
-
-/**
- * Render credit score gauge.
- * @param {number} score  - credit score value
- * @param {number|null} realAttendanceRate - actual attendance % from /users/me/stats (0–100)
- */
-function renderCreditScore(score, realAttendanceRate) {
-    const gaugeEl      = document.getElementById('creditGaugeFill');
-    const numberEl     = document.getElementById('creditScoreNumber');
-    const labelEl      = document.getElementById('creditScoreLabel');
-    const attendanceEl = document.getElementById('attendanceRate');
-    const reliabilityEl= document.getElementById('reliabilityLabel');
-
-    // Cap gauge at 150 visually (score can exceed 100)
-    const displayRatio = Math.min(score, 150) / 150;
-    const circumference = 534;
-    const offset = circumference - displayRatio * circumference;
-
-    let category, colorClass;
-    if (score >= 80) {
-        category = 'Excellent';  colorClass = 'excellent';
-    } else if (score >= 50) {
-        category = 'Good';       colorClass = 'good';
-    } else {
-        category = 'Needs Work'; colorClass = 'poor';
-    }
-
-    if (gaugeEl) {
-        gaugeEl.className = `credit-gauge-fill ${colorClass}`;
-        setTimeout(() => { gaugeEl.style.strokeDashoffset = offset; }, 100);
-    }
-
-    if (numberEl) numberEl.textContent = score;
-    if (labelEl)  labelEl.textContent  = category;
-
-    // Use the real attendance rate from the API, never a hardcoded value
-    if (attendanceEl) {
-        if (realAttendanceRate !== null && realAttendanceRate !== undefined) {
-            attendanceEl.textContent = `${realAttendanceRate}%`;
-        } else {
-            attendanceEl.textContent = '—';
+        if (avatarImage) {
+            avatarImage.style.display = 'none';
         }
     }
 
-    if (reliabilityEl) {
-        reliabilityEl.textContent = category;
-        reliabilityEl.className = `badge ${score >= 80 ? 'badge-success' : score >= 50 ? 'badge-warning' : 'badge-danger'}`;
-    }
-}
+    if (name) name.textContent = user.name;
+    if (location) location.textContent = user.location || 'Not specified';
+    if (joined) joined.textContent = formatDate(user.joinedDate, { month: 'long', year: 'numeric' });
 
-// ============================================
-// Stats
-// ============================================
-
-function renderStats(stats) {
-    if (!stats) return;
-    const map = {
-        statMatchesPlayed:   stats.matchesPlayed,
-        statMatchesAttended: stats.matchesAttended,
-        statNoShows:         stats.noShows,
-        statMatchesCreated:  stats.matchesCreated
-    };
-    Object.entries(map).forEach(([id, value]) => {
-        const el = document.getElementById(id);
-        if (el) el.textContent = value !== undefined ? value : 0;
-    });
-}
-
-// ============================================
-// Match History  (API-driven, tab-filter aware)
-// ============================================
-
-/**
- * Fetch history from API for the given filter tab and render it.
- * @param {'all'|'attended'|'missed'} filter
- */
-async function loadMatchHistory(filter = 'all') {
-    const container = document.getElementById('matchHistoryTimeline');
-    if (!container) return;
-
-    // Show skeleton loader
-    container.innerHTML = `
-        <div style="display:flex;justify-content:center;padding:2rem;">
-            <div class="loader"></div>
-        </div>`;
-
-    try {
-        const result = await UsersAPI.getMatchHistory(filter);
-        _liveHistory = result.history || [];
-        renderMatchHistory(_liveHistory);
-    } catch (err) {
-        console.error('[Profile] History fetch failed:', err);
-        container.innerHTML = `
-            <div style="text-align:center;padding:2rem;color:var(--text-muted);">
-                <p>Could not load match history.</p>
-            </div>`;
-    }
-}
-
-/**
- * Render the match history timeline from API response items.
- * API item shape: { id, matchId, role, attended, createdAt, match: { title, sport, venueName, dateTime, status } }
- */
-function renderMatchHistory(history) {
-    const container = document.getElementById('matchHistoryTimeline');
-    if (!container) return;
-
-    if (!history || history.length === 0) {
-        container.innerHTML = `
-            <div style="text-align:center;padding:var(--space-8);color:var(--text-muted);">
-                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"
-                    style="display:block;margin:0 auto 1rem;opacity:0.4;">
-                    <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/>
-                    <line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
-                </svg>
-                <p>No match history yet. Join or create a match to get started!</p>
-            </div>`;
-        return;
-    }
-
-    container.innerHTML = history.map(item => {
-        const match = item.match || {};
-
-        // Safely resolve sport
-        const sportId = (match.sport || '').toLowerCase();
-        const sport   = getSportById(sportId);
-
-        // Safely resolve venue and title
-        const venueName = escapeHTML(match.venueName || match.venue_name || match.title || 'Unknown venue');
-        const matchTitle = escapeHTML(match.title || '');
-
-        // Safely resolve date
-        const rawDate = match.dateTime || match.date_time || item.createdAt;
-        const date    = rawDate ? new Date(rawDate) : null;
-        const now     = new Date();
-        const isUpcoming = date && date > now;
-
-        // Status display
-        let markerClass, statusText, statusColor;
-        if (isUpcoming) {
-            markerClass = 'upcoming';
-            statusText  = 'Upcoming';
-            statusColor = 'var(--accent-cyan)';
-        } else if (item.attended === true) {
-            markerClass = 'attended';
-            statusText  = 'Attended';
-            statusColor = 'var(--accent-green)';
-        } else if (item.attended === false) {
-            markerClass = 'no-show';
-            statusText  = 'Missed';
-            statusColor = '#ef4444';
-        } else {
-            markerClass = 'upcoming';
-            statusText  = match.status ? match.status.charAt(0).toUpperCase() + match.status.slice(1) : '—';
-            statusColor = 'var(--text-muted)';
-        }
-
-        // Role badge
-        const isCapain = (item.role || '').toLowerCase() === 'captain';
-        const roleBadge = isCapain
-            ? `<span class="badge badge-primary" style="margin-left:var(--space-2);">Captain</span>`
-            : '';
-
-        // Date/time display
-        const dateDisplay = date
-            ? `${formatDate(date)} at ${formatTime(date)}`
-            : '—';
-
-        return `
-        <div class="timeline-item">
-            <div class="timeline-marker ${markerClass}"></div>
-            <div class="timeline-content">
-                <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:var(--space-2);">
-                    <div>
-                        <span class="sport-badge ${sportId}" style="font-size:0.8rem;padding:var(--space-1) var(--space-2);">
-                            ${sport.icon} ${sport.name}
-                        </span>
-                        ${roleBadge}
-                    </div>
-                    <span style="font-size:0.8rem;color:${statusColor};font-weight:500;">${statusText}</span>
-                </div>
-                ${matchTitle ? `<div style="font-weight:600;margin-bottom:var(--space-1);">${matchTitle}</div>` : ''}
-                <div style="font-weight:500;margin-bottom:var(--space-1);color:var(--text-secondary);">${venueName}</div>
-                <div style="font-size:0.85rem;color:var(--text-muted);">${dateDisplay}</div>
-            </div>
-        </div>`;
-    }).join('');
-}
-
-// ============================================
-// Pending Join Requests
-// ============================================
-
-/**
- * Load and render pending join requests.
- * Uses real API field names from the JoinRequest.to_dict() response.
- */
-async function loadPendingRequests() {
-    const section = document.getElementById('pendingRequestsSection');
-    const list    = document.getElementById('pendingRequestsList');
-    const countEl = document.getElementById('pendingCount');
-
-    try {
-        const result       = await RequestsAPI.getMyRequests('pending');
-        const userRequests = result.requests || [];
-
-        if (userRequests.length === 0) {
-            if (section) section.style.display = 'none';
-            return;
-        }
-
-        if (section)  section.style.display = 'block';
-        if (countEl)  countEl.textContent   = userRequests.length;
-
-        if (list) {
-            list.innerHTML = userRequests.map(req => {
-                // API shape: { id, userId, matchId, message, status, createdAt, match: {...} }
-                const match     = req.match || {};
-                const sportId   = (match.sport || '').toLowerCase();
-                const sport     = getSportById(sportId);
-                const rawDate   = match.dateTime || match.date_time;
-                const date      = rawDate ? new Date(rawDate) : null;
-                const title     = escapeHTML(match.title || 'Match');
-                const venue     = escapeHTML(match.venueName || match.venue_name || '');
-                const dateStr   = date ? `${formatDate(date)} at ${formatTime(date)}` : '—';
-
-                return `
-                <div style="display:flex;align-items:center;gap:var(--space-4);padding:var(--space-3);
-                    background:var(--glass-bg);border-radius:var(--radius-lg);margin-bottom:var(--space-3);">
-                    <div style="width:50px;height:50px;background:var(--bg-tertiary);border-radius:var(--radius-lg);
-                        display:flex;align-items:center;justify-content:center;font-size:1.5rem;flex-shrink:0;">
-                        ${sport.icon}
-                    </div>
-                    <div style="flex:1;min-width:0;">
-                        <div style="font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${title}</div>
-                        ${venue ? `<div style="font-size:0.8rem;color:var(--text-secondary);margin-bottom:2px;">${venue}</div>` : ''}
-                        <div style="font-size:0.85rem;color:var(--text-muted);">${dateStr}</div>
-                    </div>
-                    <span class="badge badge-warning" style="flex-shrink:0;">Pending</span>
-                </div>`;
-            }).join('');
-        }
-    } catch (err) {
-        console.error('[Profile] Pending requests fetch failed:', err);
-        if (section) section.style.display = 'none';
+    if (sportsContainer && user.sports) {
+        sportsContainer.innerHTML = user.sports.map(sportId => {
+            const sport = getSportById(sportId);
+            return `<span class="sport-tag selected">${sport.icon} ${sport.name}</span>`;
+        }).join('');
     }
 }
 
@@ -364,98 +141,374 @@ async function loadPendingRequests() {
 
 let pendingProfilePicture = null;
 
+/**
+ * Handle profile picture file selection
+ */
 function handleProfilePictureSelect(e) {
     const file = e.target.files[0];
     if (!file) return;
 
+    // Validate file type
     if (!file.type.startsWith('image/')) {
         Toast.error('Please select a valid image file');
         return;
     }
-    if (file.size > 2 * 1024 * 1024) {
-        Toast.error('Image size must be less than 2MB');
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+        Toast.error('Image size must be less than 5MB');
         return;
     }
 
+    // Read and preview the file
     const reader = new FileReader();
     reader.onload = function (event) {
         pendingProfilePicture = event.target.result;
+
+        // Show preview modal
         const previewImg = document.getElementById('profilePicturePreview');
-        if (previewImg) previewImg.src = pendingProfilePicture;
+        if (previewImg) {
+            previewImg.src = pendingProfilePicture;
+        }
         Modal.open('profilePictureModal');
     };
     reader.readAsDataURL(file);
 }
 
+/**
+ * Save profile picture to backend API
+ */
 async function saveProfilePicture() {
     if (!pendingProfilePicture) {
         Toast.error('No picture selected');
         return;
     }
+
     try {
+        // Upload to backend API
         const result = await UsersAPI.uploadProfilePicture(pendingProfilePicture);
-        const newPic = result.profilePicture || pendingProfilePicture;
 
-        // Update DOM
-        const avatarImage    = document.getElementById('profileAvatarImage');
-        const avatarInitials = document.getElementById('profileAvatarInitials');
-        if (avatarImage)    { avatarImage.src = newPic; avatarImage.style.display = 'block'; }
-        if (avatarInitials)   avatarInitials.style.display = 'none';
-
-        // Sync localStorage (without giant image to avoid quota issues)
+        // Update localStorage with latest user data
         let user = UserSession.getCurrentUser();
-        if (user) { user.profilePicture = newPic; UserSession.setUser(user); }
+        if (user) {
+            user.profilePicture = result.profilePicture || pendingProfilePicture;
+            UserSession.setUser(user);
+        }
 
+        // Update display
+        const avatarImage = document.getElementById('profileAvatarImage');
+        const avatarInitials = document.getElementById('profileAvatarInitials');
+
+        if (avatarImage) {
+            avatarImage.src = result.profilePicture || pendingProfilePicture;
+            avatarImage.style.display = 'block';
+        }
+        if (avatarInitials) {
+            avatarInitials.style.display = 'none';
+        }
+
+        // Close modal and show success
         Modal.close('profilePictureModal');
         Toast.success('Profile picture updated!');
+
     } catch (err) {
         Toast.error(err.message || 'Failed to upload profile picture');
     }
+
+    // Clear pending
     pendingProfilePicture = null;
+
+    // Reset file input
     const fileInput = document.getElementById('profilePictureInput');
     if (fileInput) fileInput.value = '';
+}
+
+/**
+ * Render credit score gauge
+ */
+function renderCreditScore(score) {
+    const gaugeEl = document.getElementById('creditGaugeFill');
+    const numberEl = document.getElementById('creditScoreNumber');
+    const labelEl = document.getElementById('creditScoreLabel');
+    const attendanceEl = document.getElementById('attendanceRate');
+    const reliabilityEl = document.getElementById('reliabilityLabel');
+
+    // Calculate offset (534 is full circumference)
+    const circumference = 534;
+    const offset = circumference - (score / 100) * circumference;
+
+    // Determine score category
+    let category, colorClass;
+    if (score >= 80) {
+        category = 'Excellent';
+        colorClass = 'excellent';
+    } else if (score >= 60) {
+        category = 'Good';
+        colorClass = 'good';
+    } else {
+        category = 'Needs Work';
+        colorClass = 'poor';
+    }
+
+    if (gaugeEl) {
+        gaugeEl.className = `credit-gauge-fill ${colorClass}`;
+        // Animate the gauge
+        setTimeout(() => {
+            gaugeEl.style.strokeDashoffset = offset;
+        }, 100);
+    }
+
+    if (numberEl) numberEl.textContent = score;
+    if (labelEl) labelEl.textContent = category;
+
+    if (attendanceEl) {
+        const rate = score >= 80 ? '95%' : score >= 60 ? '78%' : '52%';
+        attendanceEl.textContent = rate;
+    }
+
+    if (reliabilityEl) {
+        reliabilityEl.textContent = category;
+        reliabilityEl.className = `badge ${score >= 80 ? 'badge-success' : score >= 60 ? 'badge-warning' : 'badge-danger'}`;
+    }
+}
+
+/**
+ * Render stats
+ */
+function renderStats(stats) {
+    if (!stats) return;
+
+    const elements = {
+        statMatchesPlayed: stats.matchesPlayed,
+        statMatchesAttended: stats.matchesAttended,
+        statNoShows: stats.noShows,
+        statMatchesCreated: stats.matchesCreated
+    };
+
+    Object.entries(elements).forEach(([id, value]) => {
+        const el = document.getElementById(id);
+        if (el) el.textContent = value || 0;
+    });
+}
+
+/**
+ * Generate sample match history
+ */
+function generateSampleHistory() {
+    const sports = ['cricket', 'football', 'basketball', 'badminton'];
+    const venues = ['Central Park Ground', 'Sports Complex', 'City Arena', 'Community Stadium'];
+    const history = [];
+
+    const now = new Date();
+
+    for (let i = 0; i < 8; i++) {
+        const date = new Date(now);
+        date.setDate(date.getDate() - (i * 3 + Math.floor(Math.random() * 3)));
+
+        const attended = Math.random() > 0.15; // 85% attendance rate
+
+        history.push({
+            id: generateId(),
+            sport: sports[Math.floor(Math.random() * sports.length)],
+            venue: venues[Math.floor(Math.random() * venues.length)],
+            date: date.toISOString(),
+            attended: attended,
+            role: Math.random() > 0.7 ? 'Captain' : 'Player'
+        });
+    }
+
+    // Add an upcoming match
+    const upcomingDate = new Date(now);
+    upcomingDate.setDate(upcomingDate.getDate() + 2);
+    history.unshift({
+        id: generateId(),
+        sport: 'cricket',
+        venue: 'Green Field Arena',
+        date: upcomingDate.toISOString(),
+        attended: null, // Upcoming
+        role: 'Player'
+    });
+
+    return history;
+}
+
+/**
+ * Render match history timeline
+ */
+function renderMatchHistory(history, filter = 'all') {
+    const container = document.getElementById('matchHistoryTimeline');
+    if (!container) return;
+
+    // Filter history
+    let filteredHistory = history;
+    if (filter === 'attended') {
+        filteredHistory = history.filter(h => h.attended === true);
+    } else if (filter === 'missed') {
+        filteredHistory = history.filter(h => h.attended === false);
+    }
+
+    if (filteredHistory.length === 0) {
+        container.innerHTML = `
+      <div style="text-align: center; padding: var(--space-8); color: var(--text-muted);">
+        <p>No matches found</p>
+      </div>
+    `;
+        return;
+    }
+
+    container.innerHTML = filteredHistory.map(item => {
+        const matchData = item.match || {};
+        const sportId = matchData.sport || item.sport || 'cricket';
+        const venueName = matchData.venueName || item.venue || 'Unknown Venue';
+        const dateStr = matchData.dateTime || item.date || new Date().toISOString();
+        const role = (item.role || 'Player').charAt(0).toUpperCase() + (item.role || 'Player').slice(1).toLowerCase();
+        
+        const sport = getSportById(sportId);
+        const date = new Date(dateStr);
+        const now = new Date();
+        const isUpcoming = date > now;
+
+        let markerClass, statusText, statusColor;
+        if (isUpcoming) {
+            markerClass = 'upcoming';
+            statusText = 'Upcoming';
+            statusColor = 'var(--accent-cyan)';
+        } else if (item.attended) {
+            markerClass = 'attended';
+            statusText = 'Attended';
+            statusColor = 'var(--accent-green)';
+        } else {
+            markerClass = 'no-show';
+            statusText = 'Missed';
+            statusColor = '#ef4444';
+        }
+
+        return `
+      <div class="timeline-item">
+        <div class="timeline-marker ${markerClass}"></div>
+        <div class="timeline-content">
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: var(--space-2);">
+            <div>
+              <span class="sport-badge ${sportId}" style="font-size: 0.8rem; padding: var(--space-1) var(--space-2);">
+                ${sport.icon} ${sport.name}
+              </span>
+              ${role === 'Captain' ? '<span class="badge badge-primary" style="margin-left: var(--space-2);">Captain</span>' : ''}
+            </div>
+            <span style="font-size: 0.8rem; color: ${statusColor}; font-weight: 500;">${statusText}</span>
+          </div>
+          <div style="font-weight: 500; margin-bottom: var(--space-1);">${venueName}</div>
+          <div style="font-size: 0.85rem; color: var(--text-muted);">
+            ${formatDate(date)} at ${formatTime(date)}
+          </div>
+        </div>
+      </div>
+    `;
+    }).join('');
+}
+
+/**
+ * Load pending join requests
+ */
+async function loadPendingRequests() {
+    const section = document.getElementById('pendingRequestsSection');
+    const list = document.getElementById('pendingRequestsList');
+    const count = document.getElementById('pendingCount');
+
+    try {
+        const result = await RequestsAPI.getMyRequests('pending');
+        const userRequests = result.requests || [];
+
+        if (userRequests.length === 0) {
+            if (section) section.style.display = 'none';
+            return;
+        }
+
+        if (section) section.style.display = 'block';
+        if (count) count.textContent = userRequests.length;
+
+        if (list) {
+            list.innerHTML = userRequests.map(request => {
+                const sport = getSportById(request.sport || 'cricket');
+                const date = request.matchDateTime ? new Date(request.matchDateTime) : new Date();
+                const matchTitle = request.matchTitle || 'Match';
+
+                return `
+            <div style="display: flex; align-items: center; gap: var(--space-4); padding: var(--space-3); background: var(--glass-bg); border-radius: var(--radius-lg); margin-bottom: var(--space-3);">
+              <div style="width: 50px; height: 50px; background: var(--bg-tertiary); border-radius: var(--radius-lg); display: flex; align-items: center; justify-content: center; font-size: 1.5rem;">
+                ${sport.icon}
+              </div>
+              <div style="flex: 1;">
+                <div style="font-weight: 500;">${matchTitle}</div>
+                <div style="font-size: 0.85rem; color: var(--text-muted);">${formatDate(date)} at ${formatTime(date)}</div>
+              </div>
+              <span class="badge badge-warning">Pending</span>
+            </div>
+          `;
+            }).join('');
+        }
+    } catch (err) {
+        if (section) section.style.display = 'none';
+    }
 }
 
 // ============================================
 // Edit Profile
 // ============================================
 
+/**
+ * Open edit profile modal
+ */
 function openEditProfile() {
     const user = UserSession.getCurrentUser();
-    if (!user) { Toast.warning('Please login to edit your profile'); return; }
+    if (!user) {
+        Toast.warning('Please login to edit your profile');
+        return;
+    }
 
-    document.getElementById('editName').value     = user.name || '';
-    document.getElementById('editLocation').value = user.location ||
-        [user.city, user.state].filter(Boolean).join(', ') || '';
+    // Pre-fill form
+    document.getElementById('editName').value = user.name || '';
+    document.getElementById('editLocation').value = user.location || '';
 
+    // Update sport selections
     document.querySelectorAll('#editSportsSelection .sport-tag').forEach(tag => {
-        const sportId  = tag.dataset.sport;
+        const sportId = tag.dataset.sport;
         const checkbox = tag.querySelector('input');
-        const selected = Array.isArray(user.sports) && user.sports.includes(sportId);
-        checkbox.checked = selected;
-        tag.classList.toggle('selected', selected);
+        const isSelected = user.sports && user.sports.includes(sportId);
+
+        checkbox.checked = isSelected;
+        tag.classList.toggle('selected', isSelected);
     });
 
     Modal.open('editProfileModal');
 }
 
+/**
+ * Handle edit profile form
+ */
 async function handleEditProfile(e) {
     e.preventDefault();
 
-    const name     = document.getElementById('editName').value.trim();
+    const name = document.getElementById('editName').value.trim();
     const location = document.getElementById('editLocation').value.trim();
-    const sports   = Array.from(
-        document.querySelectorAll('#editSportsSelection input:checked')
-    ).map(i => i.value);
+    const selectedSports = Array.from(document.querySelectorAll('#editSportsSelection input:checked'))
+        .map(input => input.value);
 
-    if (!name) { Toast.error('Name is required'); return; }
+    if (!name) {
+        Toast.error('Name is required');
+        return;
+    }
 
     try {
-        const result      = await UsersAPI.updateProfile({ name, location, sports });
+        const result = await UsersAPI.updateProfile({ name, location, sports: selectedSports });
         const updatedUser = result.user;
+
+        // Update localStorage with latest data
         UserSession.setUser(updatedUser);
+
         Modal.close('editProfileModal');
         Toast.success('Profile updated successfully!');
+
+        // Re-render profile
         renderProfileHeader(updatedUser);
     } catch (err) {
         Toast.error(err.message || 'Failed to update profile');
@@ -467,22 +520,31 @@ async function handleEditProfile(e) {
 // ============================================
 
 document.addEventListener('DOMContentLoaded', () => {
+    // Load profile
     loadProfile();
 
-    // History filter tabs — re-fetch from API on each tab switch
+    // Setup history filter tabs
     document.querySelectorAll('.tab[data-history]').forEach(tab => {
-        tab.addEventListener('click', () => {
+        tab.addEventListener('click', async () => {
             document.querySelectorAll('.tab[data-history]').forEach(t => t.classList.remove('active'));
             tab.classList.add('active');
-            loadMatchHistory(tab.dataset.history);   // Always API, never sample data
+
+            try {
+                const historyResult = await UsersAPI.getMatchHistory();
+                renderMatchHistory(historyResult.history || [], tab.dataset.history);
+            } catch (err) {
+                renderMatchHistory([], tab.dataset.history);
+            }
         });
     });
 
-    // Edit profile form
+    // Setup edit profile form
     const editForm = document.getElementById('editProfileForm');
-    if (editForm) editForm.addEventListener('submit', handleEditProfile);
+    if (editForm) {
+        editForm.addEventListener('submit', handleEditProfile);
+    }
 
-    // Sport tag checkboxes in edit modal
+    // Setup sport tag selection in edit modal
     document.querySelectorAll('#editSportsSelection .sport-tag').forEach(tag => {
         tag.addEventListener('click', () => {
             const checkbox = tag.querySelector('input');
@@ -491,14 +553,14 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // Profile picture upload
+    // Setup profile picture upload
     const profilePictureInput = document.getElementById('profilePictureInput');
     if (profilePictureInput) {
         profilePictureInput.addEventListener('change', handleProfilePictureSelect);
     }
 });
 
-// Exports
-window.loadProfile         = loadProfile;
-window.openEditProfile     = openEditProfile;
-window.saveProfilePicture  = saveProfilePicture;
+// Export functions
+window.loadProfile = loadProfile;
+window.openEditProfile = openEditProfile;
+window.saveProfilePicture = saveProfilePicture;

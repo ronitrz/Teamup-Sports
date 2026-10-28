@@ -141,6 +141,7 @@
   <!-- Scripts -->
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
     integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  <script src="js/env-config.js"></script>
   <script src="js/api.js"></script>
   <script src="js/app.js"></script>
   <script src="js/matches.js"></script>
@@ -263,6 +264,21 @@
         `;
       }
 
+      const actPlayersAuth = match.players || [];
+      const isPlayerAuth = user && actPlayersAuth.some(p => p.id === user.id);
+      const isCaptainAuth = user && match.captainId === user.id;
+      const canBroadcast = (isCaptainAuth || isPlayerAuth) && ['open', 'full', 'upcoming', 'live'].includes(match.status);
+
+      const broadcastBtnHTML = canBroadcast ? `
+          <button class="btn btn-secondary btn-lg" style="width: 100%; border-color: var(--accent-cyan); color: var(--accent-cyan); margin-bottom: var(--space-3);" onclick="window.location.href='broadcast.html?matchId=${match.id}'">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: var(--space-2); vertical-align: middle;">
+              <circle cx="12" cy="12" r="2" />
+              <path d="M16.24 7.76a6 6 0 0 1 0 8.49m-8.48-.01a6 6 0 0 1 0-8.49m11.31-2.82a10 10 0 0 1 0 14.14m-14.14 0a10 10 0 0 1 0-14.14" />
+            </svg>
+            Broadcast Match
+          </button>
+      ` : '';
+
       // Generate player avatars based on API returned players list if available
       let playersHTML = '';
       const actualPlayers = match.players || [];
@@ -313,12 +329,12 @@
             <div class="card" style="margin-bottom: var(--space-6);">
               <div style="display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: var(--space-4);">
                 <span class="sport-badge ${match.sport}" style="font-size: 1rem; padding: var(--space-2) var(--space-4);">
-                  ${sport.icon} ${escapeHTML(sport.name)}
+                  ${sport.icon} ${sport.name}
                 </span>
-                <span class="match-status ${match.status}">${match.status === 'live' ? 'Live Now' : match.status === 'upcoming' ? 'Upcoming' : 'Completed'}</span>
+                <span class="match-status ${match.status === 'open' ? 'upcoming' : match.status}">${match.status === 'live' ? 'Live Now' : ['open', 'upcoming'].includes(match.status) ? 'Upcoming' : match.status === 'full' ? 'Full' : 'Completed'}</span>
               </div>
               
-              <h1 style="font-size: 1.75rem; margin-bottom: var(--space-4);">${escapeHTML(match.title)}</h1>
+              <h1 style="font-size: 1.75rem; margin-bottom: var(--space-4);">${match.title}</h1>
               
               <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--space-4);">
                 <div style="display: flex; align-items: center; gap: var(--space-3);">
@@ -358,7 +374,7 @@
                   </div>
                   <div>
                     <div style="font-size: 0.85rem; color: var(--text-muted);">Venue</div>
-                    <div style="font-weight: 500;">${escapeHTML(match.location.name)}</div>
+                    <div style="font-weight: 500;">${match.location.name}</div>
                   </div>
                 </div>
                 
@@ -383,9 +399,9 @@
             <div class="card" style="margin-bottom: var(--space-6);">
               <h3 style="margin-bottom: var(--space-4);">📍 Location</h3>
               <div style="display: flex; flex-direction: column; gap: var(--space-2);">
-                <div style="font-weight: 600; font-size: 1.1rem;">${escapeHTML(match.location.name)}</div>
-                <div style="color: var(--text-secondary);">${escapeHTML(match.location.address)}</div>
-                ${match.location.landmark ? `<div style="color: var(--text-muted); font-size: 0.9rem;">Landmark: ${escapeHTML(match.location.landmark)}</div>` : ''}
+                <div style="font-weight: 600; font-size: 1.1rem;">${match.location.name}</div>
+                <div style="color: var(--text-secondary);">${match.location.address}</div>
+                ${match.location.landmark ? `<div style="color: var(--text-muted); font-size: 0.9rem;">Landmark: ${match.location.landmark}</div>` : ''}
               </div>
               <button class="btn btn-secondary" style="margin-top: var(--space-4);" onclick="openInGoogleMaps()">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -400,7 +416,7 @@
             ${match.description ? `
               <div class="card" style="margin-bottom: var(--space-6);">
                 <h3 style="margin-bottom: var(--space-3);">About This Match</h3>
-                <p style="color: var(--text-secondary); line-height: 1.7;">${escapeHTML(match.description)}</p>
+                <p style="color: var(--text-secondary); line-height: 1.7;">${match.description}</p>
               </div>
             ` : ''}
             
@@ -431,14 +447,14 @@
                               <div style="font-weight: 600; display: flex; align-items: center; justify-content: space-between;">
                                 <div>
                                   <a href="profile.html?id=${req.user ? req.user.id : ''}" style="color: inherit; text-decoration: none; transition: color 0.2s;" onmouseover="this.style.color='var(--primary-500)'" onmouseout="this.style.color='inherit'">
-                                    ${req.user ? escapeHTML(req.user.name) : 'Unknown Player'}
+                                    ${req.user ? req.user.name : 'Unknown Player'}
                                   </a>
                                 </div>
                                 <div style="font-size: 0.85rem;">
                                   <span style="color: var(--text-muted);">Credit: </span><span style="color: var(--accent-green);">${req.user && req.user.creditScore !== undefined ? req.user.creditScore : 'N/A'}</span>
                                 </div>
                               </div>
-                              ${req.message ? `<div style="font-size: 0.9rem; margin-top: var(--space-1); color: var(--text-secondary); font-style: italic;">"${escapeHTML(req.message)}"</div>` : ''}
+                              ${req.message ? `<div style="font-size: 0.9rem; margin-top: var(--space-1); color: var(--text-secondary); font-style: italic;">"${req.message}"</div>` : ''}
                               <div style="display: flex; gap: var(--space-2); margin-top: var(--space-3);" id="req-actions-${req.id}">
                                   <button class="btn btn-primary" style="flex: 1; padding: var(--space-1); font-size: 0.9rem;" onclick="handleActionRequest(${req.id}, 'approve')">Approve</button>
                                   <button class="btn btn-secondary" style="flex: 1; padding: var(--space-1); font-size: 0.9rem;" onclick="handleActionRequest(${req.id}, 'reject')">Decline</button>
@@ -459,7 +475,7 @@
                 <div>
                   <div style="font-weight: 600; font-size: 1.1rem;">
                     <a href="profile.html?id=${match.captain ? match.captain.id : ''}" style="color: inherit; text-decoration: none; transition: color 0.2s;" onmouseover="this.style.color='var(--primary-500)'" onmouseout="this.style.color='inherit'">
-                      ${match.captain ? escapeHTML(match.captain.name) : 'Unknown'}
+                      ${match.captain ? match.captain.name : 'Unknown'}
                     </a>
                   </div>
                   <div style="display: flex; align-items: center; gap: var(--space-2); margin-top: var(--space-1);">
@@ -502,6 +518,7 @@
             </div>
             
             <!-- Action Button -->
+            ${broadcastBtnHTML}
             ${actionButtonHTML}
             
             <!-- Share Button -->

@@ -14,10 +14,7 @@
         const loginForm = document.getElementById('loginForm');
 
         if (registerForm) initRegisterFlow(registerForm);
-        if (loginForm) {
-            initLoginFlow(loginForm);
-            initForgotPasswordFlow();
-        }
+        if (loginForm) initLoginFlow(loginForm);
     });
 
 
@@ -46,162 +43,225 @@
 
         // ─── Cascading Location Dropdowns ───
         initLocationDropdowns();
-
+        
         // ─── OTP Flow ───
         initOtpFlow(form);
     }
-
-    let emailVerified = false;
-
+    
+    // ─── OTP LOGIC ───
+    let isEmailVerified = false;
+    let currentEmail = '';
+    let resendTimer = null;
+    let resendCountdown = 30;
+    
     function initOtpFlow(form) {
-        const btnSendOtp = document.getElementById('btnSendOtp');
-        const btnVerifyOtp = document.getElementById('btnVerifyOtp');
+        const btnVerifyEmail = document.getElementById('btnVerifyEmail');
+        const btnConfirmOtp = document.getElementById('btnConfirmOtp');
+        const btnResendOtp = document.getElementById('btnResendOtp');
+        const resendText = document.getElementById('resendText');
         const emailInput = document.getElementById('email');
         const otpGroup = document.getElementById('otpGroup');
-        const otpInputs = document.querySelectorAll('.otp-digit');
-        const badge = document.getElementById('emailVerifiedBadge');
-
-        if (!btnSendOtp || !btnVerifyOtp) return;
-
-        // Auto-advance logic for 6-digit square OTP
-        if (otpInputs.length === 6) {
-            otpInputs.forEach((input, index) => {
-                // Select text automatically on focus so typing overwrites effortlessly
-                input.addEventListener('focus', (e) => {
-                    e.target.select();
-                });
-
-                input.addEventListener('input', (e) => {
-                    // Strictly enforce numeric only
-                    e.target.value = e.target.value.replace(/[^0-9]/g, '');
-                    
-                    // If a valid number was typed, advance focus or auto-submit
-                    if (e.target.value !== '') {
-                        if (index < 5) {
-                            otpInputs[index + 1].focus();
-                        } else if (index === 5) {
-                            setTimeout(() => {
-                                const btn = document.getElementById('btnVerifyOtp');
-                                if (btn && !btn.disabled) btn.click();
-                            }, 100);
-                        }
+        const otpInputs = document.querySelectorAll('.otp-input');
+        const otpError = document.getElementById('otpError');
+        
+        if (!btnVerifyEmail || !btnConfirmOtp || otpInputs.length === 0) return;
+        
+        // Start resend countdown timer
+        function startResendTimer() {
+            resendCountdown = 30;
+            btnResendOtp.disabled = true;
+            
+            resendTimer = setInterval(() => {
+                resendCountdown--;
+                if (resendText) {
+                    resendText.textContent = `Resend (${resendCountdown}s)`;
+                }
+                
+                if (resendCountdown <= 0) {
+                    clearInterval(resendTimer);
+                    btnResendOtp.disabled = false;
+                    if (resendText) {
+                        resendText.textContent = 'Resend';
                     }
-                });
-
-                input.addEventListener('keydown', (e) => {
-                    if (e.key === 'Backspace') {
-                        // If current is empty, jump to previous AND clear it instantly
-                        if (e.target.value === '' && index > 0) {
-                            otpInputs[index - 1].focus();
-                            otpInputs[index - 1].value = '';
-                        }
-                    } else if (e.key === 'ArrowLeft' && index > 0) {
-                        otpInputs[index - 1].focus();
-                    } else if (e.key === 'ArrowRight' && index < 5) {
-                        otpInputs[index + 1].focus();
-                    }
-                });
-
-                input.addEventListener('paste', (e) => {
-                    e.preventDefault();
-                    // Extract up to 6 numeric characters from paste
-                    const pastedData = e.clipboardData.getData('text').replace(/[^0-9]/g, '').slice(0, 6).split('');
-                    if (pastedData.length > 0) {
-                        otpInputs.forEach(i => i.value = ''); // clear all
-                        pastedData.forEach((char, i) => {
-                            otpInputs[i].value = char;
-                        });
-                        // Land focus on the box after the last pasted digit (or the very last box)
-                        const nextFocusTarget = Math.min(pastedData.length, 5);
-                        otpInputs[nextFocusTarget].focus();
-                        
-                        if (pastedData.length >= 6) {
-                            setTimeout(() => {
-                                const btn = document.getElementById('btnVerifyOtp');
-                                if (btn && !btn.disabled) btn.click();
-                            }, 100);
-                        }
-                    }
-                });
-            });
+                }
+            }, 1000);
         }
-
-        btnSendOtp.addEventListener('click', async function() {
-            const email = emailInput.value.trim().toLowerCase();
-            if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-                showToast('Enter a valid email address first.', 'error');
-                return;
-            }
-
-            const originalText = btnSendOtp.textContent;
-            btnSendOtp.disabled = true;
-            btnSendOtp.textContent = 'Sending...';
-
-            try {
-                // Call AuthAPI.sendOtp (will add to api.js next)
-                await AuthAPI.sendOtp(email);
-                showToast('OTP sent to your email!', 'success');
+        
+        // Auto-advance logic for 6-box OTP
+        otpInputs.forEach((input, index) => {
+            input.addEventListener('input', function(e) {
+                // Remove non-numeric chars
+                this.value = this.value.replace(/[^0-9]/g, '');
                 
-                // Slide down animation (increased height to fit confirm button + spacing)
-                otpGroup.style.maxHeight = '200px';
-                otpGroup.style.opacity = '1';
-                otpGroup.style.marginBottom = 'var(--space-4)';
+                if (this.value !== '' && index < otpInputs.length - 1) {
+                    otpInputs[index + 1].focus();
+                }
                 
-                // Resend countdown
-                let seconds = 60;
-                const timer = setInterval(() => {
-                    seconds--;
-                    btnSendOtp.textContent = `Resend (${seconds}s)`;
-                    if (seconds <= 0) {
-                        clearInterval(timer);
-                        btnSendOtp.disabled = false;
-                        btnSendOtp.textContent = 'Verify';
+                // Auto-submit when all 6 digits are entered
+                const allFilled = Array.from(otpInputs).every(inp => inp.value.length === 1);
+                if (allFilled) {
+                    // Small delay for better UX
+                    setTimeout(() => btnConfirmOtp.click(), 200);
+                }
+            });
+            
+            input.addEventListener('keydown', function(e) {
+                if (e.key === 'Backspace' && this.value === '' && index > 0) {
+                    otpInputs[index - 1].focus();
+                }
+            });
+            
+            // Handle paste of 6 digits
+            input.addEventListener('paste', function(e) {
+                e.preventDefault();
+                const pastedData = e.clipboardData.getData('text').replace(/[^0-9]/g, '').slice(0, 6);
+                for (let i = 0; i < pastedData.length; i++) {
+                    if (otpInputs[i]) {
+                        otpInputs[i].value = pastedData[i];
                     }
-                }, 1000);
-
-            } catch (err) {
-                showToast(err.message || 'Failed to send OTP', 'error');
-                btnSendOtp.disabled = false;
-                btnSendOtp.textContent = originalText;
-            }
+                }
+                if (pastedData.length > 0) {
+                    otpInputs[Math.min(pastedData.length, 5)].focus();
+                }
+                // Auto-submit if 6 digits pasted
+                if (pastedData.length === 6) {
+                    setTimeout(() => btnConfirmOtp.click(), 200);
+                }
+            });
         });
 
-        btnVerifyOtp.addEventListener('click', async function() {
+        btnVerifyEmail.addEventListener('click', async function() {
             const email = emailInput.value.trim().toLowerCase();
-            const code = Array.from(otpInputs).map(inp => inp.value).join('');
-
-            if (code.length !== 6) {
-                showToast('Enter the full 6-digit code', 'error');
+            if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+                showToast('Please enter a valid email address first.', 'error');
                 return;
             }
-
-            const originalText = btnVerifyOtp.textContent;
-            btnVerifyOtp.disabled = true;
-            btnVerifyOtp.textContent = 'Checking...';
-
+            
+            currentEmail = email;
+            btnVerifyEmail.disabled = true;
+            btnVerifyEmail.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 4px; animation: spin 1s linear infinite;"><circle cx="12" cy="12" r="10"></circle><path d="M12 6v6l4 2"></path></svg>Sending...';
+            
             try {
-                await AuthAPI.verifyOtp(email, code);
-                emailVerified = true;
-                
-                // Success styling
-                showToast('Email verified successfully!', 'success');
-                
-                // Hide sliding field, show badge, disable email input
-                otpGroup.style.maxHeight = '0';
-                otpGroup.style.opacity = '0';
-                otpGroup.style.marginBottom = '0';
-                setTimeout(() => otpGroup.style.display = 'none', 400);
-
-                emailInput.readOnly = true;
-                emailInput.style.backgroundColor = 'var(--bg-secondary)';
-                btnSendOtp.style.display = 'none';
-                if(badge) {
-                    badge.style.display = 'flex';
+                const result = await AuthAPI.sendOtp(email);
+                showToast(result.message || 'OTP sent to your email!', 'success');
+                if (result.note) {
+                    setTimeout(() => showToast(result.note, 'info'), 1500);
                 }
+                
+                // Show the OTP box with animation
+                otpGroup.style.display = 'block';
+                setTimeout(() => {
+                    otpGroup.style.opacity = '1';
+                    otpGroup.style.transform = 'translateY(0)';
+                }, 10);
+                
+                // Focus first box
+                setTimeout(() => otpInputs[0].focus(), 300);
+                
+                emailInput.disabled = true; // Lock email while verifying
+                btnVerifyEmail.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 4px;"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>Sent';
+                
+                // Start 30-second countdown
+                startResendTimer();
             } catch (err) {
-                showToast(err.message || 'Invalid code', 'error');
-                btnVerifyOtp.disabled = false;
-                btnVerifyOtp.textContent = originalText;
+                showToast(err.message || 'Failed to send OTP.', 'error');
+                btnVerifyEmail.disabled = false;
+                btnVerifyEmail.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 4px;"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>Verify';
+                emailInput.disabled = false;
+            }
+        });
+        
+        // Resend OTP
+        if (btnResendOtp) {
+            btnResendOtp.addEventListener('click', async function() {
+                if (!currentEmail || btnResendOtp.disabled) return;
+                
+                btnResendOtp.disabled = true;
+                const originalText = resendText ? resendText.textContent : 'Resend';
+                if (resendText) {
+                    resendText.textContent = 'Sending...';
+                }
+                
+                try {
+                    const result = await AuthAPI.sendOtp(currentEmail);
+                    showToast('New OTP sent!', 'success');
+                    // Clear previous OTP inputs
+                    otpInputs.forEach(input => {
+                        input.value = '';
+                        input.classList.remove('error');
+                    });
+                    otpInputs[0].focus();
+                    otpError.style.display = 'none';
+                    
+                    // Restart 30-second countdown
+                    if (resendTimer) clearInterval(resendTimer);
+                    startResendTimer();
+                } catch (err) {
+                    showToast(err.message || 'Failed to resend OTP.', 'error');
+                    btnResendOtp.disabled = false;
+                    if (resendText) {
+                        resendText.textContent = originalText;
+                    }
+                }
+            });
+        }
+        
+        btnConfirmOtp.addEventListener('click', async function() {
+            const email = currentEmail || emailInput.value.trim().toLowerCase();
+            
+            // Collect OTP string from 6 boxes
+            let otp = '';
+            otpInputs.forEach(input => otp += input.value);
+            
+            if (otp.length !== 6) {
+                otpError.textContent = 'Please enter all 6 digits';
+                otpError.style.display = 'block';
+                otpInputs.forEach(input => input.classList.add('error'));
+                return;
+            }
+            
+            btnConfirmOtp.disabled = true;
+            btnConfirmOtp.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 4px; animation: spin 1s linear infinite;"><circle cx="12" cy="12" r="10"></circle><path d="M12 6v6l4 2"></path></svg>Verifying...';
+            otpError.style.display = 'none';
+            otpInputs.forEach(input => input.classList.remove('error'));
+            
+            try {
+                await AuthAPI.verifyOtp(email, otp);
+                isEmailVerified = true;
+                showToast('✅ Email verified successfully!', 'success');
+                
+                // Clear timer
+                if (resendTimer) clearInterval(resendTimer);
+                
+                // Update UI to show success
+                otpInputs.forEach(input => {
+                    input.classList.add('success');
+                    input.disabled = true;
+                });
+                btnVerifyEmail.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 4px;"><polyline points="20 6 9 17 4 12"></polyline></svg>Verified ✓';
+                btnVerifyEmail.style.background = 'var(--accent-green)';
+                btnConfirmOtp.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 4px;"><polyline points="20 6 9 17 4 12"></polyline></svg>Verified ✓';
+                btnConfirmOtp.disabled = true;
+                btnConfirmOtp.style.background = 'var(--accent-green)';
+                if (btnResendOtp) btnResendOtp.style.display = 'none';
+                
+                // Hide OTP box after 2 seconds
+                setTimeout(() => {
+                    otpGroup.style.opacity = '0';
+                    otpGroup.style.transform = 'translateY(-10px)';
+                    setTimeout(() => otpGroup.style.display = 'none', 300);
+                }, 2000);
+            } catch (err) {
+                otpError.textContent = err.message || 'Invalid or expired OTP';
+                otpError.style.display = 'block';
+                otpInputs.forEach(input => {
+                    input.classList.add('error');
+                    input.value = ''; // clear on error
+                });
+                otpInputs[0].focus();
+                
+                btnConfirmOtp.disabled = false;
+                btnConfirmOtp.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 4px;"><polyline points="20 6 9 17 4 12"></polyline></svg>Confirm Code';
             }
         });
     }
@@ -327,7 +387,7 @@
         if (!firstName || !lastName) { showToast('Enter your full name.', 'error'); return; }
         if (!email) { showToast('Enter your email address.', 'error'); return; }
         if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { showToast('Enter a valid email address.', 'error'); return; }
-        if (!emailVerified) { showToast('Please verify your email by clicking "Verify".', 'error'); return; }
+        if (!isEmailVerified) { showToast('Please verify your email address first using the Verify button.', 'error'); return; }
         if (!phone) { showToast('Enter your phone number.', 'error'); return; }
         if (password.length < 6) { showToast('Password needs at least 6 characters.', 'error'); return; }
         if (!country) { showToast('Select your country.', 'error'); return; }
@@ -431,183 +491,6 @@
 
         busy = false;
         if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Sign In'; }
-    }
-
-
-    // ═══════════════════════════════════════════
-    // FORGOT PASSWORD FLOW
-    // ═══════════════════════════════════════════
-
-    function initForgotPasswordFlow() {
-        const linkFp = document.getElementById('linkForgotPassword');
-        const loginView = document.getElementById('loginView');
-        const fpView = document.getElementById('forgotPasswordView');
-        
-        const fpStep1 = document.getElementById('fpStep1');
-        const fpStep2 = document.getElementById('fpStep2');
-        const fpStep3 = document.getElementById('fpStep3');
-        
-        const btnSendFpOtp = document.getElementById('btnSendFpOtp');
-        const btnVerifyFpOtp = document.getElementById('btnVerifyFpOtp');
-        const btnResetPassword = document.getElementById('btnResetPassword');
-        
-        const btnBackToLogin1 = document.getElementById('btnBackToLogin1');
-        const btnBackToLogin2 = document.getElementById('btnBackToLogin2');
-
-        if (!linkFp || !fpView) return;
-
-        let resetEmail = "";
-        let resetOtp = "";
-
-        // Toggle to Forgot Password View
-        linkFp.addEventListener('click', (e) => {
-            e.preventDefault();
-            loginView.style.display = 'none';
-            fpView.style.display = 'block';
-            fpStep1.style.display = 'block';
-            fpStep2.style.display = 'none';
-            fpStep3.style.display = 'none';
-        });
-
-        const cancelFp = () => {
-            fpView.style.display = 'none';
-            loginView.style.display = 'block';
-        };
-
-        if(btnBackToLogin1) btnBackToLogin1.addEventListener('click', cancelFp);
-        if(btnBackToLogin2) btnBackToLogin2.addEventListener('click', cancelFp);
-
-        // Step 1 -> 2: Send OTP
-        if(btnSendFpOtp) {
-            btnSendFpOtp.addEventListener('click', async () => {
-                const emailInput = document.getElementById('fpEmail');
-                const email = emailInput.value.trim().toLowerCase();
-                if (!email) {
-                    showToast('Please enter your email', 'error');
-                    return;
-                }
-                
-                const originalText = btnSendFpOtp.textContent;
-                btnSendFpOtp.disabled = true;
-                btnSendFpOtp.textContent = 'Sending...';
-                
-                try {
-                    await AuthAPI.forgotPasswordOtp(email);
-                    showToast('OTP sent securely!', 'success');
-                    resetEmail = email;
-                    
-                    document.getElementById('fpDisplayEmail').textContent = email;
-                    
-                    fpStep1.style.display = 'none';
-                    fpStep2.style.display = 'block';
-                    fpStep2.style.animation = 'slideInRight 0.3s forwards';
-                    
-                } catch (err) {
-                    showToast(err.message || 'Failed to send OTP', 'error');
-                } finally {
-                    btnSendFpOtp.disabled = false;
-                    btnSendFpOtp.textContent = originalText;
-                }
-            });
-        }
-
-        // OTP Array Logic
-        const fpOtpInputs = document.querySelectorAll('.fp-otp-digit');
-        if (fpOtpInputs.length === 6) {
-            fpOtpInputs.forEach((input, index) => {
-                input.addEventListener('focus', (e) => e.target.select());
-                input.addEventListener('input', (e) => {
-                    e.target.value = e.target.value.replace(/[^0-9]/g, '');
-                    if (e.target.value !== '') {
-                        if (index < 5) fpOtpInputs[index + 1].focus();
-                        else if (index === 5) {
-                            setTimeout(() => { if (!btnVerifyFpOtp.disabled) btnVerifyFpOtp.click(); }, 100);
-                        }
-                    }
-                });
-                input.addEventListener('keydown', (e) => {
-                    if (e.key === 'Backspace') {
-                        if (e.target.value === '' && index > 0) {
-                            fpOtpInputs[index - 1].focus();
-                            fpOtpInputs[index - 1].value = '';
-                        }
-                    } else if (e.key === 'ArrowLeft' && index > 0) {
-                        fpOtpInputs[index - 1].focus();
-                    } else if (e.key === 'ArrowRight' && index < 5) {
-                        fpOtpInputs[index + 1].focus();
-                    }
-                });
-                input.addEventListener('paste', (e) => {
-                    e.preventDefault();
-                    const pastedData = e.clipboardData.getData('text').replace(/[^0-9]/g, '').slice(0, 6).split('');
-                    if (pastedData.length > 0) {
-                        fpOtpInputs.forEach(i => i.value = '');
-                        pastedData.forEach((char, i) => { if(fpOtpInputs[i]) fpOtpInputs[i].value = char; });
-                        const nextFocusTarget = Math.min(pastedData.length, 5);
-                        fpOtpInputs[nextFocusTarget].focus();
-                        if (pastedData.length >= 6) {
-                            setTimeout(() => { if (!btnVerifyFpOtp.disabled) btnVerifyFpOtp.click(); }, 100);
-                        }
-                    }
-                });
-            });
-        }
-
-        // Step 2 -> 3: Pass OTP directly
-        if(btnVerifyFpOtp) {
-            btnVerifyFpOtp.addEventListener('click', () => {
-                const code = Array.from(fpOtpInputs).map(inp => inp.value).join('');
-                if (code.length !== 6) {
-                    showToast('Please enter the full 6-digit code', 'error');
-                    return;
-                }
-                resetOtp = code;
-                fpStep2.style.display = 'none';
-                fpStep3.style.display = 'block';
-                fpStep3.style.animation = 'slideInRight 0.3s forwards';
-            });
-        }
-
-        // Step 3 -> Finish: Reset Password
-        if(btnResetPassword) {
-            btnResetPassword.addEventListener('click', async () => {
-                const newPassword = document.getElementById('fpNewPassword').value;
-                if (newPassword.length < 6) {
-                    showToast('Password must be at least 6 characters', 'error');
-                    return;
-                }
-                
-                const originalText = btnResetPassword.textContent;
-                btnResetPassword.disabled = true;
-                btnResetPassword.textContent = 'Resetting...';
-                
-                try {
-                    await AuthAPI.resetPassword(resetEmail, resetOtp, newPassword);
-                    showToast('Password reset! Logging you in...', 'success');
-                    
-                    setTimeout(async () => {
-                        try {
-                            const loginRes = await AuthAPI.login(resetEmail, newPassword);
-                            if (loginRes.user) {
-                                UserSession.setUser(loginRes.user);
-                                window.location.href = 'dashboard.html';
-                            }
-                        } catch (e) {
-                             cancelFp();
-                        }
-                    }, 1000);
-                } catch (err) {
-                    showToast(err.message || 'Failed to reset password', 'error');
-                    btnResetPassword.disabled = false;
-                    btnResetPassword.textContent = originalText;
-                    
-                    if (err.message && err.message.toLowerCase().includes('code')) {
-                        fpStep3.style.display = 'none';
-                        fpStep2.style.display = 'block';
-                    }
-                }
-            });
-        }
     }
 
 

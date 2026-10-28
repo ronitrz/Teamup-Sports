@@ -121,6 +121,13 @@ def send_otp_email(to_email, otp_code, purpose='register'):
         password = current_app.config['MAIL_PASSWORD']
         sender_name, sender_email = current_app.config['MAIL_DEFAULT_SENDER']
 
+        print(f"\n📧 Attempting to send email...")
+        print(f"   SMTP Server: {smtp_server}:{smtp_port}")
+        print(f"   From: {sender_email}")
+        print(f"   To: {to_email}")
+        print(f"   Username: {username}")
+        print(f"   Password: {'*' * len(password) if password else 'NOT SET'}")
+
         purpose_text = {
             'register': 'complete your registration',
             'login': 'log in to your account',
@@ -201,75 +208,30 @@ If you didn't request this, please ignore this email.
         msg.attach(MIMEText(text, 'plain'))
         msg.attach(MIMEText(html, 'html'))
 
-        with smtplib.SMTP(smtp_server, smtp_port) as server:
+        print(f"   Connecting to SMTP server...")
+        with smtplib.SMTP(smtp_server, smtp_port, timeout=10) as server:
+            print(f"   Starting TLS...")
             server.starttls()
+            print(f"   Logging in...")
             server.login(username, password)
+            print(f"   Sending message...")
             server.send_message(msg)
+            print(f"✅ Email sent successfully to {to_email}\n")
 
         return True, 'OTP sent successfully'
 
-    except smtplib.SMTPAuthenticationError:
-        return False, 'Email authentication failed. Check credentials.'
+    except smtplib.SMTPAuthenticationError as e:
+        error_msg = f'Email authentication failed: {str(e)}'
+        print(f"❌ {error_msg}\n")
+        return False, error_msg
     except smtplib.SMTPException as e:
-        return False, f'Failed to send email: {str(e)}'
+        error_msg = f'SMTP error: {str(e)}'
+        print(f"❌ {error_msg}\n")
+        return False, error_msg
     except Exception as e:
-        return False, f'Error: {str(e)}'
+        error_msg = f'Unexpected error: {str(e)}'
+        print(f"❌ {error_msg}\n")
+        return False, error_msg
 
 
-def create_verification_record(db, identifier, purpose, expiry_minutes=15):
-    """Create email verification record with a unique token"""
-    from models.user import EmailVerification
-
-    token = generate_verification_token()
-
-    # Delete any existing record for this identifier and purpose
-    EmailVerification.query.filter_by(identifier=identifier, purpose=purpose).delete()
-
-    record = EmailVerification(
-        identifier=identifier,
-        token=token,
-        purpose=purpose,
-        expires_at=datetime.utcnow() + timedelta(minutes=expiry_minutes)
-    )
-
-    db.session.add(record)
-    db.session.commit()
-
-    return token
-
-
-def check_verification_status(db, identifier, purpose):
-    """Check if the email has been verified (link was clicked)"""
-    from models.user import EmailVerification
-
-    record = EmailVerification.query.filter_by(
-        identifier=identifier,
-        purpose=purpose,
-        is_verified=True
-    ).first()
-
-    return record is not None
-
-
-def verify_token(db, token):
-    """Verify a token from the email link click — returns (success, message, identifier)"""
-    from models.user import EmailVerification
-
-    record = EmailVerification.query.filter_by(token=token).first()
-
-    if not record:
-        return False, 'Invalid or expired verification link.', None
-
-    if record.is_expired():
-        db.session.delete(record)
-        db.session.commit()
-        return False, 'Verification link has expired. Please request a new one.', None
-
-    if record.is_verified:
-        return True, 'Email already verified.', record.identifier
-
-    # Mark as verified
-    record.is_verified = True
-    db.session.commit()
-
-    return True, 'Email verified successfully!', record.identifier
+    return True, 'OTP sent successfully'

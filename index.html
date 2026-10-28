@@ -35,6 +35,7 @@
                 <a href="index.html" class="nav-link active">Home</a>
                 <a href="dashboard.html" class="nav-link">Matches</a>
                 <a href="create-match.html" class="nav-link">Create Match</a>
+                <a href="watch-live.html" class="nav-link" style="color: #ef4444;">🔴 Watch Live</a>
                 <a href="#how-it-works" class="nav-link">How It Works</a>
             </div>
 
@@ -74,6 +75,7 @@
             <a href="index.html" class="mobile-nav-link active">Home</a>
             <a href="dashboard.html" class="mobile-nav-link">Matches</a>
             <a href="create-match.html" class="mobile-nav-link">Create Match</a>
+            <a href="watch-live.html" class="mobile-nav-link" style="color: #ef4444;">🔴 Watch Live</a>
             <a href="#how-it-works" class="mobile-nav-link">How It Works</a>
             <hr style="border-color: var(--border-default); margin: var(--space-4) 0;">
             <div id="mobileMenuAuth">
@@ -196,7 +198,7 @@
                 <h3 style="font-size: 2rem; font-weight: 700;">Choose Your Game</h3>
             </div>
 
-            <div class="sports-grid" style="max-width: 800px; margin: 0 auto;">
+            <div class="sports-grid">
                 <div class="sport-option" onclick="window.location.href='dashboard.html?sport=cricket'">
                     <div class="sport-option-icon">🏏</div>
                     <div class="sport-option-name">Cricket</div>
@@ -217,18 +219,6 @@
                     <div class="sport-option-icon">🎾</div>
                     <div class="sport-option-name">Tennis</div>
                 </div>
-                <div class="sport-option" onclick="window.location.href='dashboard.html?sport=volleyball'">
-                    <div class="sport-option-icon">🏐</div>
-                    <div class="sport-option-name">Volleyball</div>
-                </div>
-                <div class="sport-option" onclick="window.location.href='dashboard.html?sport=hockey'">
-                    <div class="sport-option-icon">🏑</div>
-                    <div class="sport-option-name">Hockey</div>
-                </div>
-                <div class="sport-option" onclick="window.location.href='dashboard.html?sport=kabaddi'">
-                    <div class="sport-option-icon">🤼</div>
-                    <div class="sport-option-name">Kabaddi</div>
-                </div>
             </div>
         </div>
     </section>
@@ -242,8 +232,7 @@
                 <h3 style="font-size: 2rem; font-weight: 700;">How It Works</h3>
             </div>
 
-            <div
-                style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: var(--space-8); max-width: 1000px; margin: 0 auto;">
+            <div class="how-it-works-grid">
                 <div class="card card-glow" style="text-align: center;">
                     <div
                         style="width: 60px; height: 60px; background: var(--primary-gradient); border-radius: var(--radius-xl); margin: 0 auto var(--space-5); display: flex; align-items: center; justify-content: center; font-size: 1.5rem;">
@@ -281,7 +270,7 @@
                 style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-8); flex-wrap: wrap; gap: var(--space-4);">
                 <div>
                     <h2 class="heading-display text-gradient" style="font-size: 0.9rem; margin-bottom: var(--space-2);">
-                        Upcoming Games</h2>
+                        All Matches</h2>
                     <h3 style="font-size: 1.75rem; font-weight: 700;">Featured Matches</h3>
                 </div>
                 <a href="dashboard.html" class="btn btn-outline">View All Matches</a>
@@ -394,6 +383,7 @@
     <div class="toast-container" id="toastContainer"></div>
 
     <!-- Scripts -->
+    <script src="js/env-config.js"></script>
     <script src="js/api.js"></script>
     <script src="js/app.js"></script>
     <script src="js/geolocation.js"></script>
@@ -480,7 +470,6 @@
 
             // ─── Match Cards (from backend API) ───
             try {
-                // Fetch upcoming/open matches to populate the cards
                 const result = await MatchesAPI.list({ status: 'open' });
                 const upcoming = result.matches || [];
 
@@ -488,17 +477,15 @@
                 if (upcoming.length > 0) {
                     const m1 = upcoming[0];
                     const sport1 = (typeof getSportById === 'function') ? getSportById(m1.sport) : { icon: '🏏', color: '#10b981' };
-                    // Prioritize spotsLeft from API, fallback to manual calc
-                    const currentP = m1.currentPlayers || m1.joinedPlayers || 0;
-                    const spots1 = m1.spotsLeft !== undefined ? m1.spotsLeft : (m1.totalPlayers - currentP);
+                    const spots1 = m1.spotsLeft !== undefined ? m1.spotsLeft : (m1.totalPlayers - (m1.currentPlayers || 0));
 
                     const fc1Icon = document.getElementById('fc1Icon');
                     const fc1Title = document.getElementById('fc1Title');
                     const fc1Sub = document.getElementById('fc1Sub');
 
                     if (fc1Icon) {
-                        fc1Icon.textContent = sport1.icon || '🏏';
-                        fc1Icon.style.background = `linear-gradient(135deg, ${sport1.color || '#10b981'}, ${sport1.color || '#10b981'}88)`;
+                        fc1Icon.textContent = sport1.icon;
+                        fc1Icon.style.background = `linear-gradient(135deg, ${sport1.color}, ${sport1.color}88)`;
                     }
                     if (fc1Title) fc1Title.textContent = m1.title.length > 20 ? m1.title.substring(0, 20) + '…' : m1.title;
                     if (fc1Sub) fc1Sub.textContent = spots1 > 0 ? `${spots1} spot${spots1 > 1 ? 's' : ''} left` : 'Team Full';
@@ -508,43 +495,32 @@
                 if (upcoming.length > 1) {
                     const m2 = upcoming[1];
                     const sport2 = (typeof getSportById === 'function') ? getSportById(m2.sport) : { icon: '⚽', color: '#f97316' };
-                    
+                    const now = new Date();
+                    const matchTime = new Date(m2.dateTime);
+                    const diffH = Math.max(0, Math.round((matchTime - now) / 3600000));
+
                     const fc2Icon = document.getElementById('fc2Icon');
                     const fc2Title = document.getElementById('fc2Title');
                     const fc2Sub = document.getElementById('fc2Sub');
 
                     if (fc2Icon) {
-                        fc2Icon.textContent = sport2.icon || '⚽';
-                        fc2Icon.style.background = `linear-gradient(135deg, ${sport2.color || '#f97316'}, ${sport2.color || '#f97316'}88)`;
+                        fc2Icon.textContent = sport2.icon;
+                        fc2Icon.style.background = `linear-gradient(135deg, ${sport2.color}, ${sport2.color}88)`;
                     }
                     if (fc2Title) fc2Title.textContent = m2.title.length > 20 ? m2.title.substring(0, 20) + '…' : m2.title;
-                    
-                    if (fc2Sub && m2.dateTime) {
-                        const now = new Date();
-                        // Parse as UTC (the API sends "Z" suffix now), local time output
-                        const matchTime = new Date(m2.dateTime);
-                        const diffMs = matchTime - now;
-                        const diffH = diffMs / 3600000;
-
-                        if (m2.status === 'live' || (diffMs < 0 && diffH > -2)) {
+                    if (fc2Sub) {
+                        if (m2.status === 'live') {
                             fc2Sub.textContent = '🔴 Live Now';
                             fc2Sub.style.color = '#ef4444';
-                        } else if (diffH <= 0) {
-                            fc2Sub.textContent = 'Completed';
-                            fc2Sub.style.color = 'var(--text-muted)';
                         } else if (diffH < 1) {
                             fc2Sub.textContent = 'Starting soon';
                             fc2Sub.style.color = '#fbbf24';
                         } else if (diffH < 24) {
-                            fc2Sub.textContent = `Starting in ${Math.round(diffH)}h`;
-                            fc2Sub.style.color = 'var(--text-secondary)';
+                            fc2Sub.textContent = `Starting in ${diffH}h`;
                         } else {
                             const days = Math.round(diffH / 24);
                             fc2Sub.textContent = `In ${days} day${days > 1 ? 's' : ''}`;
-                            fc2Sub.style.color = 'var(--text-secondary)';
                         }
-                    } else if (fc2Sub) {
-                        fc2Sub.textContent = 'Upcoming';
                     }
                 }
             } catch (e) {

@@ -1,7 +1,7 @@
 """
 Match Model - Database model for matches
 """
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta
 from database import db
 import math
 
@@ -18,6 +18,7 @@ class Match(db.Model):
     # Venue information
     venue_name = db.Column(db.String(200), nullable=False)
     venue_address = db.Column(db.String(300))
+    city = db.Column(db.String(100))
     latitude = db.Column(db.Float)
     longitude = db.Column(db.Float)
     
@@ -53,9 +54,7 @@ class Match(db.Model):
         return player_ids
     
     def add_player(self, user_id):
-        """Add a player to the match.
-        The caller is responsible for calling db.session.commit().
-        """
+        """Add a player to the match"""
         players = self.get_players_list()
         if user_id not in players:
             players.append(user_id)
@@ -63,20 +62,20 @@ class Match(db.Model):
             self.current_players = len(players)
             if self.current_players >= self.total_players:
                 self.status = 'full'
+            db.session.commit()
             return True
         return False
     
     def remove_player(self, user_id):
-        """Remove a player from the match.
-        The caller is responsible for calling db.session.commit().
-        """
+        """Remove a player from the match"""
         players = self.get_players_list()
         if user_id in players and user_id != self.captain_id:
             players.remove(user_id)
             self.players = ','.join(map(str, players)) if players else None
             self.current_players = len(players)
-            if self.current_players < self.total_players and self.status == 'full':
+            if self.current_players < self.total_players:
                 self.status = 'open'
+            db.session.commit()
             return True
         return False
     
@@ -90,30 +89,26 @@ class Match(db.Model):
     
     @property
     def entries_closed(self):
-        """Check if entries are closed (5 minutes before match start).
-        Compares against UTC to match the naive-UTC stored date_time.
-        """
+        """Check if entries are closed (5 minutes before match start)"""
         if not self.date_time:
             return False
-        now_utc = datetime.utcnow()  # naive UTC — same scale as stored date_time
+        now = datetime.utcnow()
         cutoff = self.date_time - timedelta(minutes=5)
-        return now_utc >= cutoff
+        return now >= cutoff
     
     def update_status(self):
-        """Update match status based on UTC time and player count.
-        date_time is stored as naive UTC, so we compare against utcnow().
-        """
-        now_utc = datetime.utcnow()  # naive UTC — same scale as stored date_time
-
+        """Update match status based on time and player count"""
+        now = datetime.utcnow()
+        
         if self.status == 'cancelled':
             return  # Don't change cancelled matches
-
+        
         if self.date_time:
             match_end = self.date_time + timedelta(hours=2)
-
-            if now_utc >= match_end:
+            
+            if now >= match_end:
                 self.status = 'completed'
-            elif now_utc >= self.date_time:
+            elif now >= self.date_time:
                 self.status = 'live'
             elif self.current_players >= self.total_players:
                 self.status = 'full'
@@ -124,7 +119,7 @@ class Match(db.Model):
                 self.status = 'full'
             else:
                 self.status = 'open'
-
+        
         db.session.commit()
     
     def distance_from(self, lat, lng):
@@ -145,29 +140,22 @@ class Match(db.Model):
         return round(R * c, 2)
     
     def to_dict(self, user_lat=None, user_lng=None, include_players=False):
-        """Convert match to dictionary.
-        All datetimes are serialized with a 'Z' suffix so JavaScript
-        correctly interprets them as UTC and converts to local time.
-        """
+        """Convert match to dictionary"""
         from models.user import User
-
-        def _utc_iso(dt):
-            """Return ISO string with Z suffix for any naive-UTC datetime."""
-            if dt is None:
-                return None
-            return dt.strftime('%Y-%m-%dT%H:%M:%S') + 'Z'
-
+        
         data = {
             'id': self.id,
             'title': self.title,
             'sport': self.sport,
             'description': self.description,
-            'dateTime': _utc_iso(self.date_time),
+            'dateTime': self.date_time.isoformat() + 'Z' if self.date_time else None,
             'venueName': self.venue_name,
             'venueAddress': self.venue_address,
+            'city': self.city,
             'location': {
                 'name': self.venue_name,
                 'address': self.venue_address,
+                'city': self.city,
                 'lat': self.latitude,
                 'lng': self.longitude
             },
@@ -179,7 +167,7 @@ class Match(db.Model):
             'contribution': self.contribution,
             'status': self.status,
             'entriesClosed': self.entries_closed,
-            'createdAt': _utc_iso(self.created_at)
+            'createdAt': self.created_at.isoformat() + 'Z' if self.created_at else None
         }
         
         # Include captain info

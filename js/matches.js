@@ -29,7 +29,7 @@ function createMatchCard(match) {
         avatarsHTML += `<div class="player-avatar remaining">+${currentPlayers - 4}</div>`;
     }
 
-    const statusClass = match.status || 'upcoming';
+    const statusClass = match.status === 'open' ? 'upcoming' : (match.status || 'upcoming');
     const statusText = match.status === 'live' ? '🔴 Live Now' :
         match.status === 'completed' ? 'Completed' :
             match.status === 'full' ? 'Full' : 'Upcoming';
@@ -49,19 +49,19 @@ function createMatchCard(match) {
     }
 
     // Location name
-    const locationName = escapeHTML(match.location ? (match.location.name || match.venueName) : (match.venueName || 'TBA'));
+    const locationName = match.location ? (match.location.name || match.venueName) : (match.venueName || 'TBA');
 
     return `
     <div class="card card-glow match-card" data-match-id="${match.id}" onclick="viewMatchDetails('${match.id}')">
       <div class="match-card-header">
         <span class="sport-badge ${match.sport}">
-          ${sport.icon} ${escapeHTML(sport.name)}
+          ${sport.icon} ${sport.name}
         </span>
         <span class="match-status ${statusClass}">${statusText}</span>
       </div>
       
       <div class="match-card-body">
-        <h3 class="match-title">${escapeHTML(match.title)}</h3>
+        <h3 class="match-title">${match.title}</h3>
         
         <div class="match-info">
           <div class="match-info-item">
@@ -146,20 +146,11 @@ function renderMatches(containerId, matches) {
 
 /**
  * Render featured matches on home page (limit to 6, fetched from API)
- * Specifically queries for "Today's Matches" across all statuses.
  */
 async function renderFeaturedMatches() {
     try {
-        // Build filters for today's date
-        const today = new Date();
-        // Format as YYYY-MM-DD local time
-        const dateStr = today.getFullYear() + '-' + 
-                        String(today.getMonth() + 1).padStart(2, '0') + '-' + 
-                        String(today.getDate()).padStart(2, '0');
-
-        // Allow 'all' status so live/completed matches for today also show up
-        const filters = { status: 'all', date: dateStr };
-        
+        // Build filters with location if available
+        const filters = { status: 'open' };
         const userLocation = (typeof GeoLocation !== 'undefined') ? GeoLocation.userLocation : null;
         if (userLocation) {
             filters.lat = userLocation.lat;
@@ -169,26 +160,7 @@ async function renderFeaturedMatches() {
 
         const result = await MatchesAPI.list(filters);
         const matches = (result.matches || []).slice(0, 6);
-        
-        const container = document.getElementById('featuredMatches');
-        if (container) {
-            if (matches.length === 0) {
-                container.innerHTML = `
-                    <div style="grid-column: 1 / -1; text-align: center; padding: var(--space-12) var(--space-4); background: var(--glass-bg); border-radius: var(--radius-2xl);">
-                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="1" style="margin: 0 auto var(--space-4);">
-                            <path d="M21 10.5V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h12.5"/>
-                            <path d="m16 2 6 6-6 6"/>
-                            <path d="M22 8H16V2"/>
-                        </svg>
-                        <h3 style="font-size: 1.25rem; margin-bottom: var(--space-2);">No matches found for today</h3>
-                        <p style="color: var(--text-secondary); margin-bottom: var(--space-6);">Check back tomorrow or create your own match!</p>
-                        <a href="create-match.html" class="btn btn-primary">Create Match</a>
-                    </div>
-                `;
-            } else {
-                renderMatches('featuredMatches', matches);
-            }
-        }
+        renderMatches('featuredMatches', matches);
     } catch (err) {
         console.error('Failed to load featured matches:', err);
         renderMatches('featuredMatches', []);

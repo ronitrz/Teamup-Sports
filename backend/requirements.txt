@@ -1,11 +1,19 @@
 # Flask Backend Requirements
 
 Flask==3.0.0
+Flask-Mail==0.9.1
 Flask-CORS==4.0.0
 Flask-SQLAlchemy==3.1.1
+Flask-SocketIO==5.3.6
+python-socketio==5.11.1
 PyJWT==2.8.0
 bcrypt==4.1.2
 python-dotenv==1.0.0
 Werkzeug==3.0.1
-psycopg2-binary==2.9.9
 requests==2.31.0
+
+# Production
+gunicorn==21.2.0
+gevent>=24.2.1
+gevent-websocket
+psycopg2-binary==2.9.9

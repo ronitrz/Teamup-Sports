@@ -62,8 +62,16 @@ The API will be available at `http://localhost:5000`
 - `PUT /api/requests/<id>/reject` - Reject
 - `DELETE /api/requests/<id>/cancel` - Cancel
 
+### Live Streaming (SocketIO + WebRTC)
+- `POST /api/livestream/start` - Start live stream for match
+- `POST /api/livestream/stop/<stream_id>` - Stop live stream
+- `GET /api/livestream/match/<match_id>` - Get active streams for match
+- `GET /api/livestream/active` - List all active streams (with optional city filter)
+- `GET /api/livestream/cities` - Get cities with active streams
+- `POST /api/livestream/<stream_id>/viewers` - Update viewer count
+
 ## Demo OTP
-Use code `123456` for OTP verification.
+Use code `123456` for OTP verification or configure SMTP in `.env`.
 
 ## Database
-SQLite database is created automatically as `teamup.db`.
+SQLite database is created automatically as `instance/teamup.db` or PostgreSQL via `DATABASE_URL`.

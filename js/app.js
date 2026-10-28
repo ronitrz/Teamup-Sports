@@ -77,19 +77,6 @@ function formatCurrency(amount) {
 }
 
 /**
- * Escape HTML to prevent XSS
- */
-function escapeHTML(str) {
-  if (!str) return '';
-  return String(str)
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#039;');
-}
-
-/**
  * Get sport by ID
  */
 function getSportById(sportId) {
@@ -558,4 +545,3 @@ window.formatTime = formatTime;
 window.formatCurrency = formatCurrency;
 window.generateId = generateId;
 window.generateSampleUser = generateSampleUser;
-window.escapeHTML = escapeHTML;

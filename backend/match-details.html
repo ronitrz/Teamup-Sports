@@ -1,0 +1,714 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Match Details - View match information and join the team on TeamUp Sports">
+  <title>Match Details - TeamUp Sports</title>
+  <link rel="stylesheet" href="styles/main.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+  <link rel="icon" type="image/svg+xml"
+    href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚽</text></svg>">
+</head>
+
+<body>
+  <!-- Navigation -->
+  <nav class="navbar" id="navbar">
+    <div class="container navbar-content">
+      <a href="index.html" class="logo">
+        <div class="logo-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10" />
+            <circle cx="12" cy="12" r="4" />
+          </svg>
+        </div>
+        <span>Team<span class="text-gradient">Up</span></span>
+      </a>
+
+      <div class="nav-links">
+        <a href="index.html" class="nav-link">Home</a>
+        <a href="dashboard.html" class="nav-link">Matches</a>
+        <a href="create-match.html" class="nav-link">Create Match</a>
+      </div>
+
+      <div class="nav-actions">
+        <!-- Will be updated dynamically -->
+      </div>
+
+      <button class="mobile-menu-btn" id="mobileMenuBtn">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- Mobile Menu -->
+  <div class="mobile-menu" id="mobileMenu">
+    <div class="mobile-menu-header">
+      <a href="index.html" class="logo">
+        <span>Team<span class="text-gradient">Up</span></span>
+      </a>
+      <button class="modal-close" id="closeMobileMenu">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="18" y1="6" x2="6" y2="18" />
+          <line x1="6" y1="6" x2="18" y2="18" />
+        </svg>
+      </button>
+    </div>
+    <div class="mobile-nav-links">
+      <a href="index.html" class="mobile-nav-link">Home</a>
+      <a href="dashboard.html" class="mobile-nav-link">Matches</a>
+      <a href="create-match.html" class="mobile-nav-link">Create Match</a>
+      <hr style="border-color: var(--border-default); margin: var(--space-4) 0;">
+      <div id="mobileMenuAuth">
+        <a href="login.html" class="mobile-nav-link">Login</a>
+        <a href="register.html" class="btn btn-primary" style="margin-top: var(--space-4);">Sign Up</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Match Details Page -->
+  <main class="dashboard-page" style="padding-bottom: var(--space-16);">
+    <div class="container">
+      <!-- Back Button -->
+      <a href="dashboard.html"
+        style="display: inline-flex; align-items: center; gap: var(--space-2); color: var(--text-secondary); margin-bottom: var(--space-6); transition: color 0.2s;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="19" y1="12" x2="5" y2="12" />
+          <polyline points="12 19 5 12 12 5" />
+        </svg>
+        Back to Matches
+      </a>
+
+      <div id="matchDetailsContent">
+        <!-- Loading State -->
+        <div style="display: flex; justify-content: center; padding: var(--space-16);">
+          <div class="loader"></div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Join Request Modal -->
+  <div class="modal-overlay" id="joinModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h2 class="modal-title">Join Match</h2>
+        <button class="modal-close" onclick="Modal.close('joinModal')">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18" />
+            <line x1="6" y1="6" x2="18" y2="18" />
+          </svg>
+        </button>
+      </div>
+
+      <div id="joinModalContent">
+        <p style="color: var(--text-secondary); margin-bottom: var(--space-6);">
+          You're about to request to join this match. The captain will review your request.
+        </p>
+
+        <div class="card" style="background: var(--glass-bg); margin-bottom: var(--space-6);">
+          <div style="display: flex; justify-content: space-between; margin-bottom: var(--space-3);">
+            <span style="color: var(--text-muted);">Your Credit Score</span>
+            <span style="font-weight: 600; color: var(--accent-green);" id="userCreditScore">--</span>
+          </div>
+          <div style="display: flex; justify-content: space-between;">
+            <span style="color: var(--text-muted);">Contribution</span>
+            <span style="font-weight: 600; color: var(--accent-cyan);" id="matchContribution">--</span>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Message to Captain (Optional)</label>
+          <textarea class="form-input" id="joinMessage" rows="3"
+            placeholder="Introduce yourself or add any relevant information..."></textarea>
+        </div>
+
+        <button class="btn btn-primary btn-lg" style="width: 100%; margin-top: var(--space-4);"
+          onclick="submitJoinRequest()">
+          Send Join Request
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- Scripts -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  <script src="js/env-config.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/app.js"></script>
+  <script src="js/matches.js"></script>
+  <script>
+    let currentMatch = null;
+
+    document.addEventListener('DOMContentLoaded', () => {
+      loadMatchDetails();
+    });
+
+    async function loadMatchDetails() {
+      const params = new URLSearchParams(window.location.search);
+      const matchId = params.get('id');
+
+      if (!matchId) {
+        showError('Match not found');
+        return;
+      }
+
+      try {
+        const response = await MatchesAPI.getById(matchId);
+        currentMatch = response.match;
+
+        if (!currentMatch) {
+          showError('Match not found');
+          return;
+        }
+
+        renderMatchDetails(currentMatch);
+      } catch (err) {
+        console.error('Error loading match details:', err);
+        showError('Match not found');
+      }
+    }
+
+    function showError(message) {
+      document.getElementById('matchDetailsContent').innerHTML = `
+        <div class="card" style="text-align: center; padding: var(--space-16);">
+          <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="1" style="margin: 0 auto var(--space-4);">
+            <circle cx="12" cy="12" r="10"/>
+            <line x1="12" y1="8" x2="12" y2="12"/>
+            <line x1="12" y1="16" x2="12.01" y2="16"/>
+          </svg>
+          <h2 style="margin-bottom: var(--space-2);">${message}</h2>
+          <p style="color: var(--text-secondary); margin-bottom: var(--space-6);">The match you're looking for doesn't exist or has been removed.</p>
+          <a href="dashboard.html" class="btn btn-primary">Browse Matches</a>
+        </div>
+      `;
+    }
+
+    async function renderMatchDetails(match) {
+      const sport = getSportById(match.sport);
+      const matchDate = new Date(match.dateTime);
+      const spotsLeft = match.spotsLeft;
+      const joinedPlayers = match.currentPlayers;
+      const user = UserSession.getCurrentUser();
+
+      // Check if user has already requested via API or if user is Captain
+      let userRequest = null;
+      let captainRequests = [];
+      if (user) {
+        try {
+          if (user.id !== match.captainId) {
+            // If not captain, check my requests
+            const requestsRes = await RequestsAPI.getMyRequests('all');
+            const allMyReqs = requestsRes.requests || [];
+            userRequest = allMyReqs.find(r => r.matchId === match.id);
+          } else {
+            // User is Captain, fetch pending requests for this match
+            const requestsRes = await MatchesAPI.getRequests(match.id, 'pending');
+            captainRequests = requestsRes.requests || [];
+          }
+        } catch (err) {
+          console.error("Could not fetch user requests");
+        }
+      }
+
+      let actionButtonHTML = '';
+      if (user && user.id === match.captainId) {
+        actionButtonHTML = `
+          <button class="btn btn-secondary btn-lg" style="width: 100%;" disabled>
+            You are the Captain
+          </button>
+        `;
+      } else if (userRequest) {
+        const statusColors = {
+          pending: 'var(--accent-yellow)',
+          approved: 'var(--accent-green)',
+          rejected: '#ef4444'
+        };
+        actionButtonHTML = `
+          <div class="card" style="background: rgba(251, 191, 36, 0.1); border-color: rgba(251, 191, 36, 0.3); text-align: center;">
+            <span style="font-weight: 600; text-transform: capitalize; color: ${statusColors[userRequest.status]};">
+              ${userRequest.status === 'pending' ? '⏳ Request Pending' :
+            userRequest.status === 'approved' ? '✅ Request Approved' : '❌ Request Declined'}
+            </span>
+            <p style="color: var(--text-secondary); font-size: 0.9rem; margin-top: var(--space-2);">
+              ${userRequest.status === 'pending' ? 'Waiting for captain approval' :
+            userRequest.status === 'approved' ? "You're in! See you at the match." : 'Try another match'}
+            </p>
+          </div>
+        `;
+      } else if (spotsLeft > 0) {
+        actionButtonHTML = `
+          <button class="btn btn-primary btn-lg" style="width: 100%;" onclick="openJoinModal()">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+              <circle cx="9" cy="7" r="4"/>
+              <line x1="19" y1="8" x2="19" y2="14"/>
+              <line x1="22" y1="11" x2="16" y2="11"/>
+            </svg>
+            Request to Join
+          </button>
+        `;
+      } else {
+        actionButtonHTML = `
+          <button class="btn btn-secondary btn-lg" style="width: 100%;" disabled>
+            Team Full
+          </button>
+        `;
+      }
+
+      const actPlayersAuth = match.players || [];
+      const isPlayerAuth = user && actPlayersAuth.some(p => p.id === user.id);
+      const isCaptainAuth = user && match.captainId === user.id;
+      const canBroadcast = (isCaptainAuth || isPlayerAuth) && ['open', 'full', 'upcoming', 'live'].includes(match.status);
+
+      const broadcastBtnHTML = canBroadcast ? `
+          <button class="btn btn-secondary btn-lg" style="width: 100%; border-color: var(--accent-cyan); color: var(--accent-cyan); margin-bottom: var(--space-3);" onclick="window.location.href='broadcast.html?matchId=${match.id}'">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: var(--space-2); vertical-align: middle;">
+              <circle cx="12" cy="12" r="2" />
+              <path d="M16.24 7.76a6 6 0 0 1 0 8.49m-8.48-.01a6 6 0 0 1 0-8.49m11.31-2.82a10 10 0 0 1 0 14.14m-14.14 0a10 10 0 0 1 0-14.14" />
+            </svg>
+            Broadcast Match
+          </button>
+      ` : '';
+
+      // Generate player avatars based on API returned players list if available
+      let playersHTML = '';
+      const actualPlayers = match.players || [];
+
+      if (actualPlayers.length > 0) {
+        for (let i = 0; i < Math.min(actualPlayers.length, 8); i++) {
+          const player = actualPlayers[i];
+          const initial = player.name ? player.name.charAt(0).toUpperCase() : 'P';
+          const isCaptain = player.id === match.captainId;
+
+          playersHTML += `
+            <div style="display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); padding: var(--space-3); background: var(--glass-bg); border-radius: var(--radius-lg); margin-bottom: var(--space-2);">
+              <div style="display: flex; align-items: center; gap: var(--space-3);">
+                <div style="width: 40px; height: 40px; background: ${isCaptain ? 'var(--primary-gradient)' : 'var(--bg-tertiary)'}; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 600;">
+                  ${initial}
+                </div>
+                <div style="flex: 1;">
+                  <div style="font-weight: 500;">
+                    <a href="profile.html?id=${player.id}" style="color: inherit; text-decoration: none; transition: color 0.2s;" onmouseover="this.style.color='var(--primary-500)'" onmouseout="this.style.color='inherit'">
+                      ${player.name}
+                    </a>
+                  </div>
+                  <div style="font-size: 0.8rem; color: var(--text-muted);">${isCaptain ? 'Captain' : 'Member'}</div>
+                </div>
+              </div>
+              <div style="text-align: right;">
+                <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 2px;">Credit</div>
+                <div style="font-weight: 600; color: var(--accent-green);">${player.creditScore !== undefined ? player.creditScore : 'N/A'}</div>
+              </div>
+            </div>
+          `;
+        }
+      }
+
+      if (joinedPlayers > 8) {
+        playersHTML += `
+          <div style="text-align: center; padding: var(--space-3); color: var(--text-muted);">
+            +${joinedPlayers - 8} more players
+          </div>
+        `;
+      }
+
+      const content = `
+        <div style="display: grid; grid-template-columns: 1fr 360px; gap: var(--space-8);" class="match-details-grid">
+          <!-- Main Content -->
+          <div>
+            <!-- Header Card -->
+            <div class="card" style="margin-bottom: var(--space-6);">
+              <div style="display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: var(--space-4);">
+                <span class="sport-badge ${match.sport}" style="font-size: 1rem; padding: var(--space-2) var(--space-4);">
+                  ${sport.icon} ${sport.name}
+                </span>
+                <span class="match-status ${match.status === 'open' ? 'upcoming' : match.status}">${match.status === 'live' ? 'Live Now' : ['open', 'upcoming'].includes(match.status) ? 'Upcoming' : match.status === 'full' ? 'Full' : 'Completed'}</span>
+              </div>
+              
+              <h1 style="font-size: 1.75rem; margin-bottom: var(--space-4);">${match.title}</h1>
+              
+              <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--space-4);">
+                <div style="display: flex; align-items: center; gap: var(--space-3);">
+                  <div style="width: 40px; height: 40px; background: rgba(139, 92, 246, 0.2); border-radius: var(--radius-lg); display: flex; align-items: center; justify-content: center;">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--primary-500)" stroke-width="2">
+                      <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                      <line x1="16" y1="2" x2="16" y2="6"/>
+                      <line x1="8" y1="2" x2="8" y2="6"/>
+                      <line x1="3" y1="10" x2="21" y2="10"/>
+                    </svg>
+                  </div>
+                  <div>
+                    <div style="font-size: 0.85rem; color: var(--text-muted);">Date</div>
+                    <div style="font-weight: 500;">${formatDate(matchDate, { weekday: 'long', month: 'long', day: 'numeric' })}</div>
+                  </div>
+                </div>
+                
+                <div style="display: flex; align-items: center; gap: var(--space-3);">
+                  <div style="width: 40px; height: 40px; background: rgba(34, 211, 238, 0.2); border-radius: var(--radius-lg); display: flex; align-items: center; justify-content: center;">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent-cyan)" stroke-width="2">
+                      <circle cx="12" cy="12" r="10"/>
+                      <polyline points="12 6 12 12 16 14"/>
+                    </svg>
+                  </div>
+                  <div>
+                    <div style="font-size: 0.85rem; color: var(--text-muted);">Time</div>
+                    <div style="font-weight: 500;">${formatTime(matchDate)}</div>
+                  </div>
+                </div>
+                
+                <div style="display: flex; align-items: center; gap: var(--space-3);">
+                  <div style="width: 40px; height: 40px; background: rgba(16, 185, 129, 0.2); border-radius: var(--radius-lg); display: flex; align-items: center; justify-content: center;">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent-green)" stroke-width="2">
+                      <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/>
+                      <circle cx="12" cy="10" r="3"/>
+                    </svg>
+                  </div>
+                  <div>
+                    <div style="font-size: 0.85rem; color: var(--text-muted);">Venue</div>
+                    <div style="font-weight: 500;">${match.location.name}</div>
+                  </div>
+                </div>
+                
+                <div style="display: flex; align-items: center; gap: var(--space-3);">
+                  <div style="width: 40px; height: 40px; background: rgba(251, 191, 36, 0.2); border-radius: var(--radius-lg); display: flex; align-items: center; justify-content: center;">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent-yellow)" stroke-width="2">
+                      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                      <circle cx="9" cy="7" r="4"/>
+                      <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                      <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                    </svg>
+                  </div>
+                  <div>
+                    <div style="font-size: 0.85rem; color: var(--text-muted);">Players</div>
+                    <div style="font-weight: 500;">${joinedPlayers}/${match.totalPlayers} joined</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Location Card -->
+            <div class="card" style="margin-bottom: var(--space-6);">
+              <h3 style="margin-bottom: var(--space-4);">📍 Location</h3>
+              <div style="display: flex; flex-direction: column; gap: var(--space-2);">
+                <div style="font-weight: 600; font-size: 1.1rem;">${match.location.name}</div>
+                <div style="color: var(--text-secondary);">${match.location.address}</div>
+                ${match.location.landmark ? `<div style="color: var(--text-muted); font-size: 0.9rem;">Landmark: ${match.location.landmark}</div>` : ''}
+              </div>
+              <button class="btn btn-secondary" style="margin-top: var(--space-4);" onclick="openInGoogleMaps()">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polygon points="3 11 22 2 13 21 11 13 3 11"/>
+                </svg>
+                Open in Google Maps
+              </button>
+              <div id="matchDetailMap" class="match-detail-map"></div>
+            </div>
+            
+            <!-- Description -->
+            ${match.description ? `
+              <div class="card" style="margin-bottom: var(--space-6);">
+                <h3 style="margin-bottom: var(--space-3);">About This Match</h3>
+                <p style="color: var(--text-secondary); line-height: 1.7;">${match.description}</p>
+              </div>
+            ` : ''}
+            
+            <!-- Players List -->
+            <div class="card">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-4);">
+                <h3>Players (${joinedPlayers}/${match.totalPlayers})</h3>
+                <span style="color: ${spotsLeft <= 3 ? 'var(--accent-orange)' : 'var(--text-secondary)'}; font-weight: 500;">
+                  ${spotsLeft > 0 ? spotsLeft + ' spots left' : 'Team Full'}
+                </span>
+              </div>
+              <div style="display: grid; gap: var(--space-3);">
+                ${playersHTML}
+              </div>
+            </div>
+          </div>
+          
+          <!-- Sidebar -->
+          <div class="match-details-sidebar">
+            
+            <!-- Captain Requests Section -->
+            ${user && user.id === match.captainId && captainRequests.length > 0 ? `
+              <div class="card" style="margin-bottom: var(--space-6); border: 1px solid var(--primary-500);">
+                  <h3 style="margin-bottom: var(--space-4); color: var(--primary-600);">Pending Approvals (${captainRequests.length})</h3>
+                  <div style="display: flex; flex-direction: column; gap: var(--space-3);">
+                      ${captainRequests.map(req => `
+                          <div style="background: var(--bg-tertiary); border-radius: var(--radius-md); padding: var(--space-3);">
+                              <div style="font-weight: 600; display: flex; align-items: center; justify-content: space-between;">
+                                <div>
+                                  <a href="profile.html?id=${req.user ? req.user.id : ''}" style="color: inherit; text-decoration: none; transition: color 0.2s;" onmouseover="this.style.color='var(--primary-500)'" onmouseout="this.style.color='inherit'">
+                                    ${req.user ? req.user.name : 'Unknown Player'}
+                                  </a>
+                                </div>
+                                <div style="font-size: 0.85rem;">
+                                  <span style="color: var(--text-muted);">Credit: </span><span style="color: var(--accent-green);">${req.user && req.user.creditScore !== undefined ? req.user.creditScore : 'N/A'}</span>
+                                </div>
+                              </div>
+                              ${req.message ? `<div style="font-size: 0.9rem; margin-top: var(--space-1); color: var(--text-secondary); font-style: italic;">"${req.message}"</div>` : ''}
+                              <div style="display: flex; gap: var(--space-2); margin-top: var(--space-3);" id="req-actions-${req.id}">
+                                  <button class="btn btn-primary" style="flex: 1; padding: var(--space-1); font-size: 0.9rem;" onclick="handleActionRequest(${req.id}, 'approve')">Approve</button>
+                                  <button class="btn btn-secondary" style="flex: 1; padding: var(--space-1); font-size: 0.9rem;" onclick="handleActionRequest(${req.id}, 'reject')">Decline</button>
+                              </div>
+                          </div>
+                      `).join('')}
+                  </div>
+              </div>
+            ` : ''}
+            
+            <!-- Captain Card -->
+            <div class="card" style="margin-bottom: var(--space-6);">
+              <h3 style="margin-bottom: var(--space-4);">Captain</h3>
+              <div style="display: flex; align-items: center; gap: var(--space-4);">
+                <div style="width: 60px; height: 60px; background: var(--primary-gradient); border-radius: var(--radius-xl); display: flex; align-items: center; justify-content: center; font-size: 1.5rem; font-weight: 700;">
+                  ${match.captain && match.captain.name ? match.captain.name.charAt(0).toUpperCase() : 'C'}
+                </div>
+                <div>
+                  <div style="font-weight: 600; font-size: 1.1rem;">
+                    <a href="profile.html?id=${match.captain ? match.captain.id : ''}" style="color: inherit; text-decoration: none; transition: color 0.2s;" onmouseover="this.style.color='var(--primary-500)'" onmouseout="this.style.color='inherit'">
+                      ${match.captain ? match.captain.name : 'Unknown'}
+                    </a>
+                  </div>
+                  <div style="display: flex; align-items: center; gap: var(--space-2); margin-top: var(--space-1);">
+                    <div style="width: 24px; height: 24px; background: conic-gradient(var(--accent-green) ${match.captain && match.captain.creditScore !== undefined ? match.captain.creditScore : 0}%, var(--border-default) 0); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                      <div style="width: 18px; height: 18px; background: var(--bg-card); border-radius: 50%;"></div>
+                    </div>
+                    <span style="font-size: 0.9rem; color: var(--text-muted);">Credit: <strong style="color: var(--accent-green);">${match.captain && match.captain.creditScore !== undefined ? match.captain.creditScore : 'N/A'}</strong></span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Contribution Card -->
+            <div class="card" style="margin-bottom: var(--space-6); background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(34, 211, 238, 0.1)); border-color: rgba(16, 185, 129, 0.3);">
+              <div style="text-align: center;">
+                <div style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: var(--space-2);">Contribution per Player</div>
+                <div style="font-family: var(--font-display); font-size: 2.5rem; font-weight: 700; color: var(--accent-green);">
+                  ${formatCurrency(match.contribution)}
+                </div>
+              </div>
+            </div>
+            
+            <!-- Requirements Card -->
+            <div class="card" style="margin-bottom: var(--space-6);">
+              <h3 style="margin-bottom: var(--space-4);">Requirements</h3>
+              <div style="display: flex; flex-direction: column; gap: var(--space-3);">
+                <div style="display: flex; justify-content: space-between;">
+                  <span style="color: var(--text-muted);">Skill Level</span>
+                  <span style="font-weight: 500; text-transform: capitalize;">${match.skillLevel || 'All Levels'}</span>
+                </div>
+                <div style="display: flex; justify-content: space-between;">
+                  <span style="color: var(--text-muted);">Min Credit Score</span>
+                  <span style="font-weight: 500;">${match.minCreditScore || 'None'}</span>
+                </div>
+                <div style="display: flex; justify-content: space-between;">
+                  <span style="color: var(--text-muted);">Duration</span>
+                  <span style="font-weight: 500;">${match.duration || 2} hours</span>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Action Button -->
+            ${broadcastBtnHTML}
+            ${actionButtonHTML}
+            
+            <!-- Share Button -->
+            <button class="btn btn-ghost" style="width: 100%; margin-top: var(--space-3);" onclick="shareMatch()">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="18" cy="5" r="3"/>
+                <circle cx="6" cy="12" r="3"/>
+                <circle cx="18" cy="19" r="3"/>
+                <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/>
+                <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+              </svg>
+              Share Match
+            </button>
+          </div>
+        </div>
+        
+        <style>
+          @media (max-width: 900px) {
+            .match-details-grid {
+              grid-template-columns: 1fr !important;
+            }
+            .match-details-sidebar {
+              order: -1;
+            }
+          }
+        </style>
+      `;
+
+      document.getElementById('matchDetailsContent').innerHTML = content;
+
+      // Initialize detail map
+      initMatchDetailMap(match);
+    }
+
+    function initMatchDetailMap(match) {
+      const mapContainer = document.getElementById('matchDetailMap');
+      if (!mapContainer || !window.L) return;
+
+      let lat, lng;
+      if (match.location && match.location.coordinates) {
+        lat = match.location.coordinates.lat;
+        lng = match.location.coordinates.lng;
+      } else if (match.location && match.location.lat) {
+        lat = match.location.lat;
+        lng = match.location.lng;
+      }
+
+      if (!lat || !lng) {
+        mapContainer.style.display = 'none';
+        return;
+      }
+
+      const map = L.map('matchDetailMap', {
+        center: [lat, lng],
+        zoom: 15,
+        scrollWheelZoom: false
+      });
+
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+        maxZoom: 19
+      }).addTo(map);
+
+      const sport = getSportById(match.sport);
+      const markerIcon = L.divIcon({
+        className: 'match-marker',
+        html: `<div style="
+          width: 36px; height: 36px;
+          background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #a855f7 100%);
+          border-radius: 50% 50% 50% 0;
+          transform: rotate(-45deg);
+          display: flex; align-items: center; justify-content: center;
+          box-shadow: 0 3px 12px rgba(139, 92, 246, 0.5);
+          border: 2px solid rgba(255,255,255,0.3);
+        "><span style="transform: rotate(45deg); font-size: 16px;">${sport.icon}</span></div>`,
+        iconSize: [36, 36],
+        iconAnchor: [18, 36],
+        popupAnchor: [0, -36]
+      });
+
+      L.marker([lat, lng], { icon: markerIcon })
+        .addTo(map)
+        .bindPopup(`<div class="map-popup-title">${match.location.name}</div><div class="map-popup-sport">${match.location.address}</div>`)
+        .openPopup();
+    }
+
+    function openJoinModal() {
+      const user = UserSession.getCurrentUser();
+
+      if (!user) {
+        Toast.warning('Please login to join a match');
+        setTimeout(() => {
+          window.location.href = 'login.html?redirect=' + encodeURIComponent(window.location.href);
+        }, 1000);
+        return;
+      }
+
+      // Check credit score requirement
+      if (currentMatch.minCreditScore && user.creditScore < currentMatch.minCreditScore) {
+        Toast.error(`Your credit score (${user.creditScore}) is below the minimum required (${currentMatch.minCreditScore})`);
+        return;
+      }
+
+      document.getElementById('userCreditScore').textContent = user.creditScore;
+      document.getElementById('matchContribution').textContent = formatCurrency(currentMatch.contribution);
+
+      Modal.open('joinModal');
+    }
+
+    async function submitJoinRequest() {
+      const user = UserSession.getCurrentUser();
+      if (!user || !currentMatch) return;
+
+      const message = document.getElementById('joinMessage').value.trim();
+
+      try {
+        await MatchesAPI.join(currentMatch.id, message);
+        Modal.close('joinModal');
+        Toast.success('Join request sent! Waiting for captain approval.');
+
+        // Reload to show pending status immediately
+        await loadMatchDetails();
+      } catch (err) {
+        console.error(err);
+        Toast.error(err.message || 'Failed to send join request');
+      }
+    }
+
+    function shareMatch() {
+      const url = window.location.href;
+      const text = `Check out this ${currentMatch.sport} match on TeamUp Sports!`;
+
+      if (navigator.share) {
+        navigator.share({ title: currentMatch.title, text: text, url: url });
+      } else {
+        navigator.clipboard.writeText(url).then(() => {
+          Toast.success('Match link copied to clipboard!');
+        });
+      }
+    }
+
+    async function handleActionRequest(requestId, action) {
+      const actionsDiv = document.getElementById(`req-actions-${requestId}`);
+      if (actionsDiv) {
+        actionsDiv.innerHTML = `<button class="btn btn-secondary" style="flex: 1; padding: var(--space-1); font-size: 0.9rem;" disabled>Processing...</button>`;
+      }
+
+      try {
+        if (action === 'approve') {
+          await RequestsAPI.approve(requestId);
+          Toast.success('Request approved! Player added to the team.');
+        } else {
+          await RequestsAPI.reject(requestId);
+          Toast.success('Request declined.');
+        }
+
+        // Reload to show updated status
+        await loadMatchDetails();
+      } catch (err) {
+        console.error(err);
+        Toast.error(err.message || `Failed to ${action} request`);
+        // If it failed, reload to restore the buttons
+        await loadMatchDetails();
+      }
+    }
+
+    function openInGoogleMaps() {
+      if (!currentMatch) return;
+
+      let lat, lng;
+      if (currentMatch.location && currentMatch.location.coordinates) {
+        lat = currentMatch.location.coordinates.lat;
+        lng = currentMatch.location.coordinates.lng;
+      } else if (currentMatch.location && currentMatch.location.lat) {
+        lat = currentMatch.location.lat;
+        lng = currentMatch.location.lng;
+      }
+
+      if (lat && lng) {
+        // Use exact coordinates for precise redirect
+        window.open(`https://www.google.com/maps?q=${lat},${lng}`, '_blank');
+      } else {
+        // Fallback to text search
+        const query = encodeURIComponent(
+          (currentMatch.location?.name || '') + ' ' + (currentMatch.location?.address || '')
+        );
+        window.open(`https://www.google.com/maps?q=${query}`, '_blank');
+      }
+    }
+  </script>
+</body>
+
+</html>

@@ -1,0 +1,936 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Create a new match on TeamUp Sports - Publish your game and find players">
+    <title>Create Match - TeamUp Sports</title>
+    <link rel="stylesheet" href="styles/main.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+    <link rel="icon" type="image/svg+xml"
+        href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚽</text></svg>">
+</head>
+
+<body>
+    <!-- Navigation -->
+    <nav class="navbar" id="navbar">
+        <div class="container navbar-content">
+            <a href="index.html" class="logo">
+                <div class="logo-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10" />
+                        <circle cx="12" cy="12" r="4" />
+                    </svg>
+                </div>
+                <span>Team<span class="text-gradient">Up</span></span>
+            </a>
+
+            <div class="nav-links">
+                <a href="index.html" class="nav-link">Home</a>
+                <a href="dashboard.html" class="nav-link">Matches</a>
+                <a href="create-match.html" class="nav-link active">Create Match</a>
+            </div>
+
+            <div class="nav-actions">
+                <!-- Will be updated dynamically -->
+            </div>
+
+            <button class="mobile-menu-btn" id="mobileMenuBtn">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Mobile Menu -->
+    <div class="mobile-menu" id="mobileMenu">
+        <div class="mobile-menu-header">
+            <a href="index.html" class="logo">
+                <div class="logo-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10" />
+                        <circle cx="12" cy="12" r="4" />
+                    </svg>
+                </div>
+                <span>Team<span class="text-gradient">Up</span></span>
+            </a>
+            <button class="modal-close" id="closeMobileMenu">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="18" y1="6" x2="6" y2="18" />
+                    <line x1="6" y1="6" x2="18" y2="18" />
+                </svg>
+            </button>
+        </div>
+        <div class="mobile-nav-links">
+            <a href="index.html" class="mobile-nav-link">Home</a>
+            <a href="dashboard.html" class="mobile-nav-link">Matches</a>
+            <a href="create-match.html" class="mobile-nav-link active">Create Match</a>
+            <hr style="border-color: var(--border-default); margin: var(--space-4) 0;">
+            <div id="mobileMenuAuth">
+                <a href="login.html" class="mobile-nav-link">Login</a>
+                <a href="register.html" class="btn btn-primary" style="margin-top: var(--space-4);">Sign Up</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create Match Page -->
+    <main class="create-match-page">
+        <div class="container">
+            <div class="page-header" style="text-align: center; margin-bottom: var(--space-8);">
+                <h1 class="page-title">Create a Match</h1>
+                <p class="page-subtitle">Organize your game and invite players to join</p>
+            </div>
+
+            <div class="wizard-container">
+                <!-- Progress Steps -->
+                <div class="wizard-progress">
+                    <div class="wizard-step active" data-step="1">
+                        <div class="wizard-step-indicator">1</div>
+                        <div class="wizard-step-label">Sport</div>
+                    </div>
+                    <div class="wizard-step" data-step="2">
+                        <div class="wizard-step-indicator">2</div>
+                        <div class="wizard-step-label">Details</div>
+                    </div>
+                    <div class="wizard-step" data-step="3">
+                        <div class="wizard-step-indicator">3</div>
+                        <div class="wizard-step-label">Location</div>
+                    </div>
+                    <div class="wizard-step" data-step="4">
+                        <div class="wizard-step-indicator">4</div>
+                        <div class="wizard-step-label">Team</div>
+                    </div>
+                    <div class="wizard-step" data-step="5">
+                        <div class="wizard-step-indicator">5</div>
+                        <div class="wizard-step-label">Review</div>
+                    </div>
+                </div>
+
+                <!-- Wizard Form -->
+                <div class="wizard-form" id="wizardForm">
+                    <!-- Step 1: Sport Selection -->
+                    <div class="wizard-form-section active" data-step="1">
+                        <h2 style="margin-bottom: var(--space-6);">Select Your Sport</h2>
+                        <div class="sports-grid" id="sportSelection">
+                            <div class="sport-option" data-sport="cricket">
+                                <div class="sport-option-icon">🏏</div>
+                                <div class="sport-option-name">Cricket</div>
+                            </div>
+                            <div class="sport-option" data-sport="football">
+                                <div class="sport-option-icon">⚽</div>
+                                <div class="sport-option-name">Football</div>
+                            </div>
+                            <div class="sport-option" data-sport="basketball">
+                                <div class="sport-option-icon">🏀</div>
+                                <div class="sport-option-name">Basketball</div>
+                            </div>
+                            <div class="sport-option" data-sport="badminton">
+                                <div class="sport-option-icon">🏸</div>
+                                <div class="sport-option-name">Badminton</div>
+                            </div>
+                            <div class="sport-option" data-sport="tennis">
+                                <div class="sport-option-icon">🎾</div>
+                                <div class="sport-option-name">Tennis</div>
+                            </div>
+                            <div class="sport-option" data-sport="volleyball">
+                                <div class="sport-option-icon">🏐</div>
+                                <div class="sport-option-name">Volleyball</div>
+                            </div>
+                            <div class="sport-option" data-sport="hockey">
+                                <div class="sport-option-icon">🏑</div>
+                                <div class="sport-option-name">Hockey</div>
+                            </div>
+                            <div class="sport-option" data-sport="kabaddi">
+                                <div class="sport-option-icon">🤼</div>
+                                <div class="sport-option-name">Kabaddi</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Step 2: Match Details -->
+                    <div class="wizard-form-section" data-step="2">
+                        <h2 style="margin-bottom: var(--space-6);">Match Details</h2>
+
+                        <div class="form-group">
+                            <label class="form-label required">Match Title</label>
+                            <input type="text" class="form-input" id="matchTitle"
+                                placeholder="e.g., Sunday Morning Cricket Match">
+                            <span class="form-hint">Give your match a catchy name</span>
+                        </div>
+
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-4);">
+                            <div class="form-group">
+                                <label class="form-label required">Date</label>
+                                <input type="date" class="form-input" id="matchDate">
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label required">Time</label>
+                                <input type="time" class="form-input" id="matchTime">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Duration (hours)</label>
+                            <select class="form-input form-select" id="matchDuration">
+                                <option value="1">1 hour</option>
+                                <option value="1.5">1.5 hours</option>
+                                <option value="2" selected>2 hours</option>
+                                <option value="2.5">2.5 hours</option>
+                                <option value="3">3 hours</option>
+                                <option value="4">4+ hours</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Description</label>
+                            <textarea class="form-input" id="matchDescription" rows="3"
+                                placeholder="Any additional details about the match..."></textarea>
+                        </div>
+                    </div>
+
+                    <!-- Step 3: Location -->
+                    <div class="wizard-form-section" data-step="3">
+                        <h2 style="margin-bottom: var(--space-6);">Location Details</h2>
+
+                        <div class="form-group">
+                            <label class="form-label required">Venue Name</label>
+                            <input type="text" class="form-input" id="venueName"
+                                placeholder="e.g., Central Park Ground">
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label required">Address</label>
+                            <input type="text" class="form-input" id="venueAddress"
+                                placeholder="Full address of the venue">
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Landmark / Directions</label>
+                            <input type="text" class="form-input" id="venueLandmark"
+                                placeholder="Near Metro Station, opposite Mall...">
+                        </div>
+
+                        <div class="card" style="background: var(--glass-bg); padding: var(--space-5);">
+                            <div
+                                style="display: flex; align-items: center; gap: var(--space-3); color: var(--text-secondary);">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2">
+                                    <circle cx="12" cy="12" r="10" />
+                                    <line x1="12" y1="16" x2="12" y2="12" />
+                                    <line x1="12" y1="8" x2="12.01" y2="8" />
+                                </svg>
+                                <span style="font-size: 0.9rem;">Click on the map below to set the exact venue
+                                    location.</span>
+                            </div>
+                        </div>
+
+                        <div class="form-group" style="margin-top: var(--space-4);">
+                            <label class="form-label">📍 Pin Venue on Map</label>
+                            <div style="position: relative; margin-bottom: var(--space-3);">
+                                <div style="position: relative;">
+                                    <input type="text" class="form-input" id="mapSearchInput"
+                                        placeholder="🔍 Search for a location on the map..."
+                                        style="padding-right: 2.5rem;" autocomplete="off">
+                                    <div id="mapSearchSpinner"
+                                        style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); display: none;">
+                                        <div
+                                            style="width: 18px; height: 18px; border: 2px solid var(--border-default); border-top-color: var(--primary-500); border-radius: 50%; animation: spin 0.6s linear infinite;">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div id="mapSearchResults" style="
+                                    position: absolute; top: 100%; left: 0; right: 0; z-index: 1000;
+                                    background: var(--bg-card); border: 1px solid var(--border-default);
+                                    border-radius: var(--radius-lg); margin-top: 4px;
+                                    max-height: 250px; overflow-y: auto;
+                                    display: none; box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+                                "></div>
+                            </div>
+                            <div id="venueMapPicker" class="map-picker"></div>
+                            <div class="map-picker-hint">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2">
+                                    <circle cx="12" cy="12" r="10" />
+                                    <line x1="12" y1="16" x2="12" y2="12" />
+                                    <line x1="12" y1="8" x2="12.01" y2="8" />
+                                </svg>
+                                <span id="mapPickerStatus">Search a location above or click the map to place a
+                                    pin</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Step 4: Team Requirements -->
+                    <div class="wizard-form-section" data-step="4">
+                        <h2 style="margin-bottom: var(--space-6);">Team Requirements</h2>
+
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-4);">
+                            <div class="form-group">
+                                <label class="form-label required">Total Players Needed</label>
+                                <input type="number" class="form-input" id="totalPlayers" min="2" max="50" value="22">
+                                <span class="form-hint">Including yourself</span>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label required">Contribution per Player</label>
+                                <div style="position: relative;">
+                                    <span
+                                        style="position: absolute; left: var(--space-4); top: 50%; transform: translateY(-50%); color: var(--text-muted);">₹</span>
+                                    <input type="number" class="form-input" id="contribution" min="0" step="50"
+                                        value="200" style="padding-left: 2.5rem;">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Skill Level</label>
+                            <select class="form-input form-select" id="skillLevel">
+                                <option value="all">All Levels Welcome</option>
+                                <option value="beginner">Beginner Friendly</option>
+                                <option value="intermediate">Intermediate</option>
+                                <option value="advanced">Advanced</option>
+                                <option value="pro">Professional</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Minimum Credit Score Required</label>
+                            <select class="form-input form-select" id="minCreditScore">
+                                <option value="0">No minimum</option>
+                                <option value="50">50+ (Fair)</option>
+                                <option value="60">60+ (Good)</option>
+                                <option value="70">70+ (Very Good)</option>
+                                <option value="80">80+ (Excellent)</option>
+                            </select>
+                            <span class="form-hint">Players below this score won't be able to join</span>
+                        </div>
+
+                        <label class="checkbox-group" style="margin-top: var(--space-4);">
+                            <input type="checkbox" class="checkbox-input" id="autoApprove">
+                            <span class="checkbox-custom">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="3">
+                                    <polyline points="20 6 9 17 4 12" />
+                                </svg>
+                            </span>
+                            <span style="color: var(--text-secondary);">Auto-approve players with credit score above
+                                70</span>
+                        </label>
+                    </div>
+
+                    <!-- Step 5: Review -->
+                    <div class="wizard-form-section" data-step="5">
+                        <h2 style="margin-bottom: var(--space-6);">Review & Publish</h2>
+
+                        <div class="card" id="reviewSummary" style="background: var(--glass-bg);">
+                            <!-- Will be populated dynamically -->
+                        </div>
+
+                        <div class="card"
+                            style="background: rgba(16, 185, 129, 0.1); border-color: rgba(16, 185, 129, 0.3); margin-top: var(--space-4);">
+                            <div style="display: flex; align-items: flex-start; gap: var(--space-3);">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--accent-green)"
+                                    stroke-width="2" style="flex-shrink: 0;">
+                                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+                                    <polyline points="22 4 12 14.01 9 11.01" />
+                                </svg>
+                                <div>
+                                    <div style="font-weight: 600; margin-bottom: var(--space-1);">You're all set!</div>
+                                    <div style="color: var(--text-secondary); font-size: 0.9rem;">
+                                        Once published, your match will be visible to all players. You'll receive
+                                        notifications when someone requests to join.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Wizard Actions -->
+                    <div class="wizard-actions">
+                        <button type="button" class="btn btn-secondary" id="prevBtn" style="visibility: hidden;">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <line x1="19" y1="12" x2="5" y2="12" />
+                                <polyline points="12 19 5 12 12 5" />
+                            </svg>
+                            Previous
+                        </button>
+                        <button type="button" class="btn btn-primary" id="nextBtn">
+                            Next
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <line x1="5" y1="12" x2="19" y2="12" />
+                                <polyline points="12 5 19 12 12 19" />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Success Modal -->
+    <div class="modal-overlay" id="successModal">
+        <div class="modal" style="text-align: center;">
+            <div
+                style="width: 80px; height: 80px; background: rgba(16, 185, 129, 0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto var(--space-6);">
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--accent-green)"
+                    stroke-width="2">
+                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+                    <polyline points="22 4 12 14.01 9 11.01" />
+                </svg>
+            </div>
+            <h2 style="font-size: 1.5rem; margin-bottom: var(--space-2);">Match Published! 🎉</h2>
+            <p style="color: var(--text-secondary); margin-bottom: var(--space-6);">
+                Your match is now live and visible to all players. You'll be notified when someone wants to join.
+            </p>
+            <div style="display: flex; gap: var(--space-3);">
+                <a href="dashboard.html" class="btn btn-secondary" style="flex: 1;">View All Matches</a>
+                <button onclick="location.reload()" class="btn btn-primary" style="flex: 1;">Create Another</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- Scripts -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <script src="js/env-config.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/app.js"></script>
+    <script>
+        // Wizard state
+        let currentStep = 1;
+        const totalSteps = 5;
+        let matchData = {
+            sport: null,
+            title: '',
+            date: '',
+            time: '',
+            duration: 2,
+            description: '',
+            venue: { name: '', address: '', landmark: '' },
+            latitude: null,
+            longitude: null,
+            totalPlayers: 22,
+            contribution: 200,
+            skillLevel: 'all',
+            minCreditScore: 0,
+            autoApprove: false
+        };
+
+        // Initialize wizard
+        document.addEventListener('DOMContentLoaded', () => {
+            initSportSelection();
+            initWizardNavigation();
+            setMinDate();
+            initVenueMapPicker();
+        });
+
+        // Set minimum date to today (using LOCAL date, not UTC)
+        function setMinDate() {
+            const dateInput = document.getElementById('matchDate');
+            if (dateInput) {
+                const now = new Date();
+                // Pad to YYYY-MM-DD using LOCAL date parts to avoid UTC offset issues
+                const yyyy = now.getFullYear();
+                const mm = String(now.getMonth() + 1).padStart(2, '0');
+                const dd = String(now.getDate()).padStart(2, '0');
+                const today = `${yyyy}-${mm}-${dd}`;
+                dateInput.min = today;
+                dateInput.value = today;
+            }
+        }
+
+        // Sport selection
+        function initSportSelection() {
+            document.querySelectorAll('.sport-option').forEach(option => {
+                option.addEventListener('click', () => {
+                    document.querySelectorAll('.sport-option').forEach(o => o.classList.remove('selected'));
+                    option.classList.add('selected');
+                    matchData.sport = option.dataset.sport;
+
+                    // Update players count based on sport
+                    const sport = SPORTS.find(s => s.id === matchData.sport);
+                    if (sport) {
+                        const totalPlayersInput = document.getElementById('totalPlayers');
+                        if (totalPlayersInput) {
+                            totalPlayersInput.value = sport.playersNeeded * 2;
+                        }
+                    }
+                });
+            });
+        }
+
+        // Wizard navigation
+        function initWizardNavigation() {
+            const prevBtn = document.getElementById('prevBtn');
+            const nextBtn = document.getElementById('nextBtn');
+
+            prevBtn.addEventListener('click', () => {
+                if (currentStep > 1) {
+                    goToStep(currentStep - 1);
+                }
+            });
+
+            nextBtn.addEventListener('click', () => {
+                if (validateCurrentStep()) {
+                    if (currentStep < totalSteps) {
+                        goToStep(currentStep + 1);
+                    } else {
+                        publishMatch();
+                    }
+                }
+            });
+        }
+
+        // Validate current step
+        function validateCurrentStep() {
+            switch (currentStep) {
+                case 1:
+                    if (!matchData.sport) {
+                        Toast.error('Please select a sport');
+                        return false;
+                    }
+                    break;
+                case 2:
+                    const title = document.getElementById('matchTitle').value.trim();
+                    const date = document.getElementById('matchDate').value;
+                    const time = document.getElementById('matchTime').value;
+
+                    if (!title) {
+                        Toast.error('Please enter a match title');
+                        return false;
+                    }
+                    if (!date) {
+                        Toast.error('Please select a date');
+                        return false;
+                    }
+                    if (!time) {
+                        Toast.error('Please select a time');
+                        return false;
+                    }
+
+                    matchData.title = title;
+                    matchData.date = date;
+                    matchData.time = time;
+                    matchData.duration = document.getElementById('matchDuration').value;
+                    matchData.description = document.getElementById('matchDescription').value;
+                    break;
+                case 3:
+                    const venueName = document.getElementById('venueName').value.trim();
+                    const venueAddress = document.getElementById('venueAddress').value.trim();
+
+                    if (!venueName) {
+                        Toast.error('Please enter venue name');
+                        return false;
+                    }
+                    if (!venueAddress) {
+                        Toast.error('Please enter venue address');
+                        return false;
+                    }
+
+                    matchData.venue = {
+                        name: venueName,
+                        address: venueAddress,
+                        landmark: document.getElementById('venueLandmark').value
+                    };
+                    // Lat/lng are set via map click
+                    break;
+                case 4:
+                    matchData.totalPlayers = parseInt(document.getElementById('totalPlayers').value);
+                    matchData.contribution = parseInt(document.getElementById('contribution').value);
+                    matchData.skillLevel = document.getElementById('skillLevel').value;
+                    matchData.minCreditScore = parseInt(document.getElementById('minCreditScore').value);
+                    matchData.autoApprove = document.getElementById('autoApprove').checked;
+                    break;
+            }
+            return true;
+        }
+
+        // Go to specific step
+        function goToStep(step) {
+            // Update step indicators
+            document.querySelectorAll('.wizard-step').forEach(s => {
+                const stepNum = parseInt(s.dataset.step);
+                s.classList.remove('active', 'completed');
+                if (stepNum < step) {
+                    s.classList.add('completed');
+                } else if (stepNum === step) {
+                    s.classList.add('active');
+                }
+            });
+
+            // Update form sections
+            document.querySelectorAll('.wizard-form-section').forEach(section => {
+                section.classList.remove('active');
+                if (parseInt(section.dataset.step) === step) {
+                    section.classList.add('active');
+                }
+            });
+
+            currentStep = step;
+
+            // Invalidate map size when navigating to step 3 (Location)
+            if (step === 3 && venueMap) {
+                setTimeout(() => venueMap.invalidateSize(), 100);
+            }
+
+            // Update buttons
+            const prevBtn = document.getElementById('prevBtn');
+            const nextBtn = document.getElementById('nextBtn');
+
+            prevBtn.style.visibility = step === 1 ? 'hidden' : 'visible';
+
+            if (step === totalSteps) {
+                nextBtn.innerHTML = `
+          Publish Match
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+            <polyline points="22 4 12 14.01 9 11.01"/>
+          </svg>
+        `;
+                updateReviewSummary();
+            } else {
+                nextBtn.innerHTML = `
+          Next
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="5" y1="12" x2="19" y2="12"/>
+            <polyline points="12 5 19 12 12 19"/>
+          </svg>
+        `;
+            }
+        }
+
+        // Update review summary
+        function updateReviewSummary() {
+            const summary = document.getElementById('reviewSummary');
+            const sport = SPORTS.find(s => s.id === matchData.sport);
+            const dateTime = new Date(`${matchData.date}T${matchData.time}`);
+
+            summary.innerHTML = `
+        <div style="display: flex; align-items: center; gap: var(--space-4); margin-bottom: var(--space-6); padding-bottom: var(--space-4); border-bottom: 1px solid var(--border-default);">
+          <div style="width: 60px; height: 60px; background: var(--primary-gradient); border-radius: var(--radius-xl); display: flex; align-items: center; justify-content: center; font-size: 2rem;">
+            ${sport ? sport.icon : '🏆'}
+          </div>
+          <div>
+            <h3 style="font-size: 1.25rem; margin-bottom: var(--space-1);">${matchData.title}</h3>
+            <span class="sport-badge ${matchData.sport}">${sport ? sport.name : matchData.sport}</span>
+          </div>
+        </div>
+        
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-4);">
+          <div>
+            <div style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: var(--space-1);">Date & Time</div>
+            <div style="font-weight: 500;">${formatDate(dateTime)} at ${formatTime(dateTime)}</div>
+          </div>
+          
+          <div>
+            <div style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: var(--space-1);">Duration</div>
+            <div style="font-weight: 500;">${matchData.duration} hours</div>
+          </div>
+          
+          <div>
+            <div style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: var(--space-1);">Venue</div>
+            <div style="font-weight: 500;">${matchData.venue.name}</div>
+            <div style="font-size: 0.85rem; color: var(--text-secondary);">${matchData.venue.address}</div>
+          </div>
+          
+          <div>
+            <div style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: var(--space-1);">Players</div>
+            <div style="font-weight: 500;">${matchData.totalPlayers} players needed</div>
+          </div>
+          
+          <div>
+            <div style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: var(--space-1);">Contribution</div>
+            <div style="font-weight: 500; color: var(--accent-green);">${formatCurrency(matchData.contribution)} / person</div>
+          </div>
+          
+          <div>
+            <div style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: var(--space-1);">Skill Level</div>
+            <div style="font-weight: 500; text-transform: capitalize;">${matchData.skillLevel}</div>
+          </div>
+        </div>
+        
+        ${matchData.description ? `
+          <div style="margin-top: var(--space-4); padding-top: var(--space-4); border-top: 1px solid var(--border-default);">
+            <div style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: var(--space-1);">Description</div>
+            <div style="color: var(--text-secondary);">${matchData.description}</div>
+          </div>
+        ` : ''}
+      `;
+        }
+
+        // Publish match
+        async function publishMatch() {
+            const user = UserSession.getCurrentUser();
+
+            if (!user) {
+                Toast.warning('Please login to create a match');
+                setTimeout(() => {
+                    window.location.href = 'login.html?redirect=' + encodeURIComponent(window.location.href);
+                }, 1000);
+                return;
+            }
+
+            // Show loading state
+            const btn = document.getElementById('nextBtn');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = 'Publishing...';
+            btn.disabled = true;
+
+            try {
+                // Build the datetime string with explicit local timezone offset
+                // so the backend knows exactly what time the user intended.
+                const localDT = new Date(`${matchData.date}T${matchData.time}:00`);
+                const tzOffsetMin = localDT.getTimezoneOffset(); // e.g. -330 for IST
+                const sign = tzOffsetMin <= 0 ? '+' : '-';
+                const absOffset = Math.abs(tzOffsetMin);
+                const offsetHH = String(Math.floor(absOffset / 60)).padStart(2, '0');
+                const offsetMM = String(absOffset % 60).padStart(2, '0');
+                const localISOString = `${matchData.date}T${matchData.time}:00${sign}${offsetHH}:${offsetMM}`;
+
+                const newMatch = {
+                    sport: matchData.sport,
+                    title: matchData.title,
+                    venueName: matchData.venue.name,
+                    venueAddress: matchData.venue.address || matchData.venue.landmark,
+                    latitude: matchData.latitude,
+                    longitude: matchData.longitude,
+                    dateTime: localISOString,
+                    totalPlayers: matchData.totalPlayers,
+                    contribution: matchData.contribution,
+                    skillLevel: matchData.skillLevel,
+                    description: matchData.description
+                };
+
+                // Save to API (PostgreSQL database)
+                await MatchesAPI.create(newMatch);
+
+                // Show success modal
+                Modal.open('successModal');
+                Toast.success('Match created successfully!');
+            } catch (err) {
+                Toast.error(err.message || 'Failed to publish match.');
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }
+        }
+
+        // Map picker for venue location
+        let venueMap = null;
+        let venueMarker = null;
+
+        function initVenueMapPicker() {
+            const mapContainer = document.getElementById('venueMapPicker');
+            if (!mapContainer || !window.L) return;
+
+            // Default center: Mumbai
+            venueMap = L.map('venueMapPicker', {
+                center: [19.0760, 72.8777],
+                zoom: 12,
+                scrollWheelZoom: true
+            });
+
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+                maxZoom: 19
+            }).addTo(venueMap);
+
+            // Click to place pin
+            venueMap.on('click', function (e) {
+                placeVenuePin(e.latlng.lat, e.latlng.lng);
+            });
+
+            // Try to get user location to center map
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(function (position) {
+                    venueMap.setView([position.coords.latitude, position.coords.longitude], 14);
+                }, function () {
+                    // Ignore error, keep default center
+                });
+            }
+
+            // Geocode when address changes
+            const addressInput = document.getElementById('venueAddress');
+            if (addressInput) {
+                let geocodeTimeout;
+                addressInput.addEventListener('input', function () {
+                    clearTimeout(geocodeTimeout);
+                    geocodeTimeout = setTimeout(() => {
+                        const address = addressInput.value.trim();
+                        if (address.length > 5) {
+                            geocodeAddress(address);
+                        }
+                    }, 800);
+                });
+            }
+
+            // Initialize map search bar
+            initMapSearch();
+        }
+
+        // Map Search Bar with Autocomplete
+        function initMapSearch() {
+            const searchInput = document.getElementById('mapSearchInput');
+            const resultsContainer = document.getElementById('mapSearchResults');
+            const spinner = document.getElementById('mapSearchSpinner');
+            if (!searchInput || !resultsContainer) return;
+
+            let searchTimeout;
+
+            searchInput.addEventListener('input', function () {
+                clearTimeout(searchTimeout);
+                const query = this.value.trim();
+
+                if (query.length < 3) {
+                    resultsContainer.style.display = 'none';
+                    return;
+                }
+
+                if (spinner) spinner.style.display = 'block';
+
+                searchTimeout = setTimeout(() => {
+                    fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=5&addressdetails=1`)
+                        .then(res => res.json())
+                        .then(data => {
+                            if (spinner) spinner.style.display = 'none';
+
+                            if (!data || data.length === 0) {
+                                resultsContainer.innerHTML = `
+                                    <div style="padding: 12px 16px; color: var(--text-muted); font-size: 0.9rem;">
+                                        No locations found. Try a different search.
+                                    </div>`;
+                                resultsContainer.style.display = 'block';
+                                return;
+                            }
+
+                            resultsContainer.innerHTML = data.map((item, index) => `
+                                <div class="map-search-item" data-index="${index}" style="
+                                    padding: 10px 16px; cursor: pointer;
+                                    border-bottom: 1px solid var(--border-default);
+                                    transition: background 0.15s;
+                                " onmouseover="this.style.background='var(--glass-bg)'"
+                                   onmouseout="this.style.background='transparent'">
+                                    <div style="font-weight: 500; font-size: 0.95rem; margin-bottom: 2px;">
+                                        📍 ${item.display_name.split(',').slice(0, 2).join(',')}
+                                    </div>
+                                    <div style="font-size: 0.8rem; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                        ${item.display_name}
+                                    </div>
+                                </div>
+                            `).join('');
+                            resultsContainer.style.display = 'block';
+
+                            // Attach click handlers
+                            resultsContainer.querySelectorAll('.map-search-item').forEach(el => {
+                                el.addEventListener('click', () => {
+                                    const idx = parseInt(el.dataset.index);
+                                    const selected = data[idx];
+                                    const lat = parseFloat(selected.lat);
+                                    const lng = parseFloat(selected.lon);
+
+                                    // Place pin on map
+                                    placeVenuePin(lat, lng);
+
+                                    // Auto-fill venue name and address
+                                    const nameParts = selected.display_name.split(',');
+                                    const venueNameInput = document.getElementById('venueName');
+                                    const venueAddressInput = document.getElementById('venueAddress');
+
+                                    if (venueNameInput && !venueNameInput.value.trim()) {
+                                        venueNameInput.value = nameParts[0].trim();
+                                    }
+                                    if (venueAddressInput && !venueAddressInput.value.trim()) {
+                                        venueAddressInput.value = nameParts.slice(1, 4).join(',').trim();
+                                    }
+
+                                    // Clear search
+                                    searchInput.value = selected.display_name.split(',').slice(0, 3).join(',');
+                                    resultsContainer.style.display = 'none';
+                                });
+                            });
+                        })
+                        .catch(err => {
+                            if (spinner) spinner.style.display = 'none';
+                            console.log('Map search failed:', err);
+                        });
+                }, 400);
+            });
+
+            // Close results on outside click
+            document.addEventListener('click', function (e) {
+                if (!searchInput.contains(e.target) && !resultsContainer.contains(e.target)) {
+                    resultsContainer.style.display = 'none';
+                }
+            });
+        }
+
+        function placeVenuePin(lat, lng) {
+            if (!venueMap) return;
+
+            matchData.latitude = lat;
+            matchData.longitude = lng;
+
+            if (venueMarker) {
+                venueMap.removeLayer(venueMarker);
+            }
+
+            const markerIcon = L.divIcon({
+                className: 'match-marker',
+                html: `<div style="
+                    width: 36px; height: 36px;
+                    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #a855f7 100%);
+                    border-radius: 50% 50% 50% 0;
+                    transform: rotate(-45deg);
+                    display: flex; align-items: center; justify-content: center;
+                    box-shadow: 0 3px 12px rgba(139, 92, 246, 0.5);
+                    border: 2px solid rgba(255,255,255,0.3);
+                "><span style="transform: rotate(45deg); font-size: 16px;">📍</span></div>`,
+                iconSize: [36, 36],
+                iconAnchor: [18, 36]
+            });
+
+            venueMarker = L.marker([lat, lng], { icon: markerIcon, draggable: true })
+                .addTo(venueMap);
+
+            venueMarker.on('dragend', function (e) {
+                const pos = e.target.getLatLng();
+                matchData.latitude = pos.lat;
+                matchData.longitude = pos.lng;
+                updateMapPickerStatus(pos.lat, pos.lng);
+            });
+
+            venueMap.setView([lat, lng], Math.max(venueMap.getZoom(), 15));
+            updateMapPickerStatus(lat, lng);
+        }
+
+        function updateMapPickerStatus(lat, lng) {
+            const status = document.getElementById('mapPickerStatus');
+            if (status) {
+                status.innerHTML = `<span style="color: var(--accent-green);">✓ Location set (${lat.toFixed(4)}, ${lng.toFixed(4)})</span> — drag the pin to adjust`;
+            }
+        }
+
+        function geocodeAddress(address) {
+            fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}&limit=1`)
+                .then(res => res.json())
+                .then(data => {
+                    if (data && data.length > 0) {
+                        const lat = parseFloat(data[0].lat);
+                        const lng = parseFloat(data[0].lon);
+                        placeVenuePin(lat, lng);
+                    }
+                })
+                .catch(err => console.log('Geocoding failed:', err));
+        }
+    </script>
+</body>
+
+</html>

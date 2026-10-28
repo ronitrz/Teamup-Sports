@@ -4,7 +4,7 @@
  */
 
 const API_CONFIG = {
-    BASE_URL: 'http://localhost:5000/api',
+    BASE_URL: ((window.BACKEND_URL ? window.BACKEND_URL.replace(/\/$/, '') : 'http://localhost:5000')) + '/api',
     TIMEOUT: 30000
 };
 
@@ -140,21 +140,24 @@ const AuthAPI = {
         return result;
     },
 
-
     async sendOtp(email) {
         return API.post('/auth/send-otp', { email }, { auth: false });
     },
 
-    async verifyOtp(email, code) {
-        return API.post('/auth/verify-otp', { email, code }, { auth: false });
+    async verifyOtp(email, otp) {
+        return API.post('/auth/verify-otp', { email, otp }, { auth: false });
     },
 
-    async forgotPasswordOtp(email) {
-        return API.post('/auth/forgot-password-otp', { email }, { auth: false });
+    async sendPasswordResetOtp(email) {
+        return API.post('/auth/forgot-password', { email }, { auth: false });
     },
 
-    async resetPassword(email, code, newPassword) {
-        return API.post('/auth/reset-password', { email, code, newPassword }, { auth: false });
+    async verifyPasswordResetOtp(email, otp) {
+        return API.post('/auth/verify-reset-otp', { email, otp }, { auth: false });
+    },
+
+    async resetPassword(email, newPassword) {
+        return API.post('/auth/reset-password', { email, password: newPassword }, { auth: false });
     },
 
     async getCurrentUser() {
@@ -288,6 +291,37 @@ const LocationsAPI = {
 };
 
 // ============================================
+// Live Stream API
+// ============================================
+
+const LiveStreamAPI = {
+    async startStream(matchId, cameraLabel) {
+        return API.post('/livestream/start', { match_id: matchId, camera_label: cameraLabel });
+    },
+
+    async stopStream(streamId) {
+        return API.post(`/livestream/stop/${streamId}`);
+    },
+
+    async getMatchStreams(matchId) {
+        return API.get(`/livestream/match/${matchId}`, { auth: false });
+    },
+
+    async getActiveStreams(city = '') {
+        const url = city ? `/livestream/active?city=${encodeURIComponent(city)}` : '/livestream/active';
+        return API.get(url, { auth: false });
+    },
+
+    async getCities() {
+        return API.get('/livestream/cities', { auth: false });
+    },
+
+    async updateViewerCount(streamId, action) {
+        return API.post(`/livestream/${streamId}/viewers`, { action }, { auth: false });
+    }
+};
+
+// ============================================
 // Export for use
 // ============================================
 
@@ -297,3 +331,4 @@ window.UsersAPI = UsersAPI;
 window.MatchesAPI = MatchesAPI;
 window.RequestsAPI = RequestsAPI;
 window.LocationsAPI = LocationsAPI;
+window.LiveStreamAPI = LiveStreamAPI;

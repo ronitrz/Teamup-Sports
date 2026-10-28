@@ -79,7 +79,7 @@
     <!-- Create Match Page -->
     <main class="create-match-page">
         <div class="container">
-            <div class="page-header" style="text-align: center; margin-bottom: var(--space-8);">
+            <div class="page-header">
                 <h1 class="page-title">Create a Match</h1>
                 <p class="page-subtitle">Organize your game and invite players to join</p>
             </div>
@@ -401,6 +401,7 @@
     <!-- Scripts -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
         integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <script src="js/env-config.js"></script>
     <script src="js/api.js"></script>
     <script src="js/app.js"></script>
     <script>
@@ -432,11 +433,16 @@
             initVenueMapPicker();
         });
 
-        // Set minimum date to today
+        // Set minimum date to today (using LOCAL date, not UTC)
         function setMinDate() {
             const dateInput = document.getElementById('matchDate');
             if (dateInput) {
-                const today = new Date().toISOString().split('T')[0];
+                const now = new Date();
+                // Pad to YYYY-MM-DD using LOCAL date parts to avoid UTC offset issues
+                const yyyy = now.getFullYear();
+                const mm = String(now.getMonth() + 1).padStart(2, '0');
+                const dd = String(now.getDate()).padStart(2, '0');
+                const today = `${yyyy}-${mm}-${dd}`;
                 dateInput.min = today;
                 dateInput.value = today;
             }
@@ -680,7 +686,15 @@
             btn.disabled = true;
 
             try {
-                const dateTime = new Date(`${matchData.date}T${matchData.time}`);
+                // Build the datetime string with explicit local timezone offset
+                // so the backend knows exactly what time the user intended.
+                const localDT = new Date(`${matchData.date}T${matchData.time}:00`);
+                const tzOffsetMin = localDT.getTimezoneOffset(); // e.g. -330 for IST
+                const sign = tzOffsetMin <= 0 ? '+' : '-';
+                const absOffset = Math.abs(tzOffsetMin);
+                const offsetHH = String(Math.floor(absOffset / 60)).padStart(2, '0');
+                const offsetMM = String(absOffset % 60).padStart(2, '0');
+                const localISOString = `${matchData.date}T${matchData.time}:00${sign}${offsetHH}:${offsetMM}`;
 
                 const newMatch = {
                     sport: matchData.sport,
@@ -689,7 +703,7 @@
                     venueAddress: matchData.venue.address || matchData.venue.landmark,
                     latitude: matchData.latitude,
                     longitude: matchData.longitude,
-                    dateTime: dateTime.toISOString(),
+                    dateTime: localISOString,
                     totalPlayers: matchData.totalPlayers,
                     contribution: matchData.contribution,
                     skillLevel: matchData.skillLevel,

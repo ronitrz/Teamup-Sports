@@ -99,4 +99,20 @@ class User(db.Model):
         return f'<User {self.name}>'
 
 
+class OTP(db.Model):
+    """Model for storing OTP codes in the database"""
+    __tablename__ = 'otps'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    email = db.Column(db.String(120), nullable=False, index=True)
+    otp = db.Column(db.String(6), nullable=False)
+    purpose = db.Column(db.String(20), default='register')  # register, login, reset
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    expires_at = db.Column(db.DateTime, nullable=False)
+    is_verified = db.Column(db.Boolean, default=False)
+    
+    def is_expired(self):
+        return datetime.utcnow() > self.expires_at
+
+
 
